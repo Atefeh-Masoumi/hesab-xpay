@@ -9,14 +9,10 @@ export interface AuthModel {
 export interface UserModel {
   id: number;
   username: string;
+  phoneNumber: string;
   password: string | undefined;
-  email: string;
-  first_name: string;
-  last_name: string;
+  email?: string;
   fullname?: string;
-  occupation?: string;
-  companyName?: string;
-  phone?: string;
   roles?: number[];
   pic?: string;
   language?: TLanguageCode;

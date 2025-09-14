@@ -13,7 +13,7 @@ import * as authHelper from '../_helpers';
 import { type AuthModel, type UserModel } from '@/auth';
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
-export const LOGIN_URL = `${API_URL}/login`;
+export const LOGIN_URL = `${API_URL}/Admin/User/SignIn`;
 export const REGISTER_URL = `${API_URL}/register`;
 export const FORGOT_PASSWORD_URL = `${API_URL}/forgot-password`;
 export const RESET_PASSWORD_URL = `${API_URL}/reset-password`;
@@ -26,7 +26,7 @@ interface AuthContextProps {
   saveAuth: (auth: AuthModel | undefined) => void;
   currentUser: UserModel | undefined;
   setCurrentUser: Dispatch<SetStateAction<UserModel | undefined>>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (phoneNumber: string, password: string, code: string) => Promise<void>;
   loginWithGoogle?: () => Promise<void>;
   loginWithFacebook?: () => Promise<void>;
   loginWithGithub?: () => Promise<void>;
@@ -50,17 +50,17 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
   const [auth, setAuth] = useState<AuthModel | undefined>(authHelper.getAuth());
   const [currentUser, setCurrentUser] = useState<UserModel | undefined>();
 
-  const verify = async () => {
-    if (auth) {
-      try {
-        const { data: user } = await getUser();
-        setCurrentUser(user);
-      } catch {
-        saveAuth(undefined);
-        setCurrentUser(undefined);
-      }
-    }
-  };
+  // const verify = async () => {
+  //   if (auth) {
+  //     try {
+  //       const { data: user } = await getUser();
+  //       setCurrentUser(user);
+  //     } catch {
+  //       saveAuth(undefined);
+  //       setCurrentUser(undefined);
+  //     }
+  //   }
+  // };
 
   const saveAuth = (auth: AuthModel | undefined) => {
     setAuth(auth);
@@ -71,18 +71,39 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (phoneNumber: string, password: string, code: string) => {
     try {
-      const { data: auth } = await axios.post<AuthModel>(LOGIN_URL, {
-        email,
-        password
+      const { data } = await axios.post(LOGIN_URL, {
+        phoneNumber,
+        password,
+        code
       });
-      saveAuth(auth);
-      const { data: user } = await getUser();
-      setCurrentUser(user);
-    } catch (error) {
+      if (data && data.status === 200 && data.value) {
+        // Map API response to AuthModel
+        const auth: AuthModel = {
+          access_token: data.value.accessToken,
+          refreshToken: data.value.refreshToken,
+          api_token: '' // Set appropriately if available
+          // Add other fields as needed
+        };
+        saveAuth(auth);
+        // Optionally set currentUser if you want to store user info
+        setCurrentUser({
+          id: 0, // Set appropriately if available
+          username: '', // Set appropriately if available
+          password: '', // Set appropriately if available
+          phoneNumber: phoneNumber,
+          fullname: '', // Set appropriately if available
+        });
+      } else {
+        saveAuth(undefined);
+        setCurrentUser(undefined);
+        throw new Error(data?.message || 'Login failed');
+      }
+    } catch (error: any) {
       saveAuth(undefined);
-      throw new Error(`Error ${error}`);
+      setCurrentUser(undefined);
+      throw new Error(`Error ${error?.message || error}`);
     }
   };
 
@@ -129,6 +150,12 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
   const logout = () => {
     saveAuth(undefined);
     setCurrentUser(undefined);
+  };
+
+  // Provide a stub for verify to match AuthContextProps
+  const verify = async () => {
+    // Not implemented
+    return;
   };
 
   return (

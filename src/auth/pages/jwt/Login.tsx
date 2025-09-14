@@ -10,11 +10,10 @@ import { useLayout } from '@/providers';
 import { Alert } from '@/components';
 
 const loginSchema = Yup.object().shape({
-  email: Yup.string()
-    .email('Wrong email format')
+  phoneNumber: Yup.string()
     .min(3, 'Minimum 3 symbols')
     .max(50, 'Maximum 50 symbols')
-    .required('Email is required'),
+    .required('Phone number is required'),
   password: Yup.string()
     .min(3, 'Minimum 3 symbols')
     .max(50, 'Maximum 50 symbols')
@@ -23,8 +22,9 @@ const loginSchema = Yup.object().shape({
 });
 
 const initialValues = {
-  email: 'demo@keenthemes.com',
-  password: 'demo1234',
+  phoneNumber: '',
+  password: '',
+  code: '',
   remember: false
 };
 
@@ -48,12 +48,12 @@ const Login = () => {
           throw new Error('JWTProvider is required for this form.');
         }
 
-        await login(values.email, values.password);
+        await login(values.phoneNumber, values.password, values.code);
 
         if (values.remember) {
-          localStorage.setItem('email', values.email);
+          localStorage.setItem('phoneNumber', values.phoneNumber);
         } else {
-          localStorage.removeItem('email');
+          localStorage.removeItem('phoneNumber');
         }
 
         navigate(from, { replace: true });
@@ -71,83 +71,38 @@ const Login = () => {
   };
 
   return (
-    <div className="card max-w-[390px] w-full">
+    <div className="card max-w-[390px] w-full" dir='rtl'>
       <form
         className="card-body flex flex-col gap-5 p-10"
         onSubmit={formik.handleSubmit}
         noValidate
       >
-        <div className="text-center mb-2.5">
-          <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">Sign in</h3>
-          <div className="flex items-center justify-center font-medium">
-            <span className="text-2sm text-gray-600 me-1.5">Need an account?</span>
-            <Link
-              to={currentLayout?.name === 'auth-branded' ? '/auth/signup' : '/auth/classic/signup'}
-              className="text-2sm link"
-            >
-              Sign up
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2.5">
-          <a href="#" className="btn btn-light btn-sm justify-center">
-            <img
-              src={toAbsoluteUrl('/media/brand-logos/google.svg')}
-              className="size-3.5 shrink-0"
-            />
-            Use Google
-          </a>
-
-          <a href="#" className="btn btn-light btn-sm justify-center">
-            <img
-              src={toAbsoluteUrl('/media/brand-logos/apple-black.svg')}
-              className="size-3.5 shrink-0 dark:hidden"
-            />
-            <img
-              src={toAbsoluteUrl('/media/brand-logos/apple-white.svg')}
-              className="size-3.5 shrink-0 light:hidden"
-            />
-            Use Apple
-          </a>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="border-t border-gray-200 w-full"></span>
-          <span className="text-2xs text-gray-500 font-medium uppercase">Or</span>
-          <span className="border-t border-gray-200 w-full"></span>
-        </div>
-
-        <Alert variant="primary">
-          Use <span className="font-semibold text-gray-900">demo@keenthemes.com</span> username and{' '}
-          <span className="font-semibold text-gray-900">demo1234</span> password.
-        </Alert>
 
         {formik.status && <Alert variant="danger">{formik.status}</Alert>}
 
         <div className="flex flex-col gap-1">
-          <label className="form-label text-gray-900">Email</label>
+          <label className="form-label text-gray-900">شماره موبایل </label>
           <label className="input">
             <input
-              placeholder="Enter username"
+              placeholder="Enter Phone Number"
               autoComplete="off"
-              {...formik.getFieldProps('email')}
+              {...formik.getFieldProps('phoneNumber')}
               className={clsx('form-control', {
-                'is-invalid': formik.touched.email && formik.errors.email
+                'is-invalid': formik.touched.phoneNumber && formik.errors.phoneNumber
               })}
             />
           </label>
-          {formik.touched.email && formik.errors.email && (
+          {formik.touched.phoneNumber && formik.errors.phoneNumber && (
             <span role="alert" className="text-danger text-xs mt-1">
-              {formik.errors.email}
+              {formik.errors.phoneNumber}
             </span>
           )}
         </div>
 
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between gap-1">
-            <label className="form-label text-gray-900">Password</label>
-            <Link
+            <label className="form-label text-gray-900">رمز عبور</label>
+            {/* <Link
               to={
                 currentLayout?.name === 'auth-branded'
                   ? '/auth/reset-password'
@@ -156,7 +111,7 @@ const Login = () => {
               className="text-2sm link shrink-0"
             >
               Forgot Password?
-            </Link>
+            </Link> */}
           </div>
           <label className="input">
             <input
