@@ -13,11 +13,12 @@ const loginSchema = Yup.object().shape({
   phoneNumber: Yup.string()
     .min(3, 'Minimum 3 symbols')
     .max(50, 'Maximum 50 symbols')
-    .required('Phone number is required'),
+    .required('شماره موبایل الزامی است'),
   password: Yup.string()
     .min(3, 'Minimum 3 symbols')
     .max(50, 'Maximum 50 symbols')
-    .required('Password is required'),
+    .required('رمز عبور الزامی است'),
+    
   remember: Yup.boolean()
 });
 
