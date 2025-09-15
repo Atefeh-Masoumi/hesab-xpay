@@ -4,7 +4,7 @@ import { useDemo1Layout } from '../';
 import { toAbsoluteUrl } from '@/utils';
 import { SidebarToggle } from './';
 import Lottie from 'lottie-react';
-import logoAnimation from '/public/media/lootie/X.json';
+import logoAnimation from '../../../../public/media/lootie/x.json';
 
 const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
   const { layout } = useDemo1Layout();
