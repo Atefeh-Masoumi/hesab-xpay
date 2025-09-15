@@ -2,8 +2,8 @@
 
 @font-face {
     font-family: "Dana";
-    src: url("/public/font/DanaVF.woff2") format("woff2"),
-        url("/public/font/DanaVF.woff") format("woff");
+    src: url("/font/DanaVF.woff2") format("woff2"),
+        url("/font/DanaVF.woff") format("woff");
     font-weight: 500;
     font-style: normal;
 }
