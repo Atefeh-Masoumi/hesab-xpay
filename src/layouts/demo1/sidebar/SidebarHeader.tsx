@@ -4,7 +4,7 @@ import { useDemo1Layout } from '../';
 import { toAbsoluteUrl } from '@/utils';
 import { SidebarToggle } from './';
 import Lottie from 'lottie-react';
-import logoAnimation from '../../../../public/media/lootie/x.json';
+// import logoAnimation from '../../../../public/media/lootie/x.json';
 
 const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
   const { layout } = useDemo1Layout();
@@ -12,41 +12,41 @@ const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
   const lightLogo = () => (
     <Fragment>
       <Link to="/" className="dark:hidden">
-        {/* <img
+        <img
           src={toAbsoluteUrl('/media/app/default-logo.svg')}
           className="default-logo min-h-[22px] max-w-none"
-        /> */}
-        <Lottie animationData={logoAnimation} loop={true} className="h-[100px] w-[40px]" />
-        {/* <img
+        />
+        {/* <Lottie animationData={logoAnimation} loop={true} className="h-[100px] w-[40px]" /> */}
+        <img
           src={toAbsoluteUrl('/media/app/mini-logo.svg')}
           className="small-logo min-h-[22px] max-w-none"
-        /> */}
+        />
       </Link>
       <Link to="/" className="hidden dark:block">
-        <Lottie animationData={logoAnimation} loop={true} className="h-[100px] w-[40px]" />
-        {/* <img
+        {/* <Lottie animationData={logoAnimation} loop={true} className="h-[100px] w-[40px]" /> */}
+        <img
           src={toAbsoluteUrl('/media/app/default-logo-dark.svg')}
           className="default-logo min-h-[22px] max-w-none"
         />
         <img
           src={toAbsoluteUrl('/media/app/mini-logo.svg')}
           className="small-logo min-h-[22px] max-w-none"
-        /> */}
+        />
       </Link>
     </Fragment>
   );
 
   const darkLogo = () => (
     <Link to="/">
-      <Lottie animationData={logoAnimation} loop={true} className="h-[100px] w-[40px]" />
-      {/* <img
+      {/* <Lottie animationData={logoAnimation} loop={true} className="h-[100px] w-[40px]" /> */}
+      <img
         src={toAbsoluteUrl('/media/app/default-logo-dark.svg')}
         className="default-logo min-h-[22px] max-w-none"
       />
       <img
         src={toAbsoluteUrl('/media/app/mini-logo.svg')}
         className="small-logo min-h-[22px] max-w-none"
-      /> */}
+      />
     </Link>
   );
 
