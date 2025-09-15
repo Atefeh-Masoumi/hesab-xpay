@@ -1,0 +1,16 @@
+{
+  "USER.MENU.PUBLIC_PROFILE": "پروفایل عمومی",
+  "USER.MENU.MY_PROFILE": "پروفایل من",
+  "USER.MENU.MY_ACCOUNT": "حساب کاربری من",
+  "USER.MENU.GET_STARTED": "شروع کنید",
+  "USER.MENU.BILLING": "صورتحساب",
+  "USER.MENU.SECURITY": "امنیت",
+  "USER.MENU.MEMBERS_&_ROLES": "اعضا و نقش‌ها",
+  "USER.MENU.INTEGRATIONS": "یکپارچه‌سازی‌ها",
+  "USER.MENU.NOTIFICATIONS": "اعلان‌ها",
+  "USER.MENU.DEV_FORUM": "انجمن توسعه‌دهندگان",
+  "USER.MENU.PAYMENT_&_SUBSCRIPTION_INFO": "اطلاعات پرداخت و اشتراک",
+  "USER.MENU.DARK_MODE": "حالت تاریک",
+  "USER.MENU.LOGOUT": "خروج",
+  "USER.MENU.LANGUAGE": "زبان"
+}

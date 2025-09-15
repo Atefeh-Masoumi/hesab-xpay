@@ -2,9 +2,19 @@ import { type TMenuConfig } from '@/components/menu';
 
 export const MENU_SIDEBAR: TMenuConfig = [
   {
-    title: 'Dashboards',
+    title: 'پیشخوان',
     icon: 'element-11',
-    children: []
+    path: '/'
+  },
+  {
+    title: 'مشتریان',
+    icon: 'users',
+    path: '/network/user-cards/mini-cards'
+  },
+  {
+    title: 'فاکتورها',
+    icon: 'note-2',
+    path: '/invoices'
   }
 ];
 export const MENU_MEGA: TMenuConfig = [

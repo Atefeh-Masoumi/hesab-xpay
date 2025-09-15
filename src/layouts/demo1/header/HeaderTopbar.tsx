@@ -1,13 +1,17 @@
-import { useRef, useState } from 'react';
+import { ChangeEvent, useRef, useState } from 'react';
 import { KeenIcon } from '@/components/keenicons';
 import { toAbsoluteUrl } from '@/utils';
 import { Menu, MenuItem, MenuToggle } from '@/components';
-import { DropdownUser } from '@/partials/dropdowns/user';
+import { DropdownUser, DropdownUserLanguages } from '@/partials/dropdowns/user';
 import { DropdownNotifications } from '@/partials/dropdowns/notifications';
 import { DropdownApps } from '@/partials/dropdowns/apps';
 import { DropdownChat } from '@/partials/dropdowns/chat';
 import { ModalSearch } from '@/partials/modals/search/ModalSearch';
 import { useLanguage } from '@/i18n';
+import { FormattedMessage } from 'react-intl';
+import { useAuthContext } from '@/auth';
+import { useSettings } from '@/providers';
+import { CommonHexagonBadge } from '@/partials/common';
 
 const HeaderTopbar = () => {
   const { isRTL } = useLanguage();
@@ -25,18 +29,27 @@ const HeaderTopbar = () => {
   const handleClose = () => {
     setSearchModalOpen(false);
   };
-
+  const { logout } = useAuthContext();
+  const { settings, storeSettings } = useSettings();
+  const handleThemeMode = (event: ChangeEvent<HTMLInputElement>) => {
+    const newThemeMode = event.target.checked ? 'dark' : 'light';
+    storeSettings({ themeMode: newThemeMode });
+  };
+  const toggleThemeMode = () => {
+    const newThemeMode = settings.themeMode === 'dark' ? 'light' : 'dark';
+    storeSettings({ themeMode: newThemeMode });
+  };
   return (
     <div className="flex items-center gap-2 lg:gap-3.5">
-      <button
+      {/* <button
         onClick={handleOpen}
         className="btn btn-icon btn-icon-lg size-9 rounded-full hover:bg-primary-light hover:text-primary text-gray-500"
       >
         <KeenIcon icon="magnifier" />
       </button>
-      <ModalSearch open={searchModalOpen} onOpenChange={handleClose} />
+      <ModalSearch open={searchModalOpen} onOpenChange={handleClose} /> */}
 
-      <Menu>
+      {/* <Menu>
         <MenuItem
           ref={itemChatRef}
           onShow={handleShow}
@@ -60,9 +73,9 @@ const HeaderTopbar = () => {
 
           {DropdownChat({ menuTtemRef: itemChatRef })}
         </MenuItem>
-      </Menu>
+      </Menu> */}
 
-      <Menu>
+      {/* <Menu>
         <MenuItem
           ref={itemAppsRef}
           toggle="dropdown"
@@ -85,9 +98,9 @@ const HeaderTopbar = () => {
 
           {DropdownApps()}
         </MenuItem>
-      </Menu>
+      </Menu> */}
 
-      <Menu>
+      {/* <Menu>
         <MenuItem
           ref={itemNotificationsRef}
           toggle="dropdown"
@@ -109,8 +122,51 @@ const HeaderTopbar = () => {
           </MenuToggle>
           {DropdownNotifications({ menuTtemRef: itemNotificationsRef })}
         </MenuItem>
+      </Menu> */}
+      <Menu>
+        <DropdownUserLanguages menuItemRef={itemUserRef} />
       </Menu>
-
+      <Menu>
+        <div
+          onClick={toggleThemeMode}
+          className="menu-item cursor-pointer flex items-center justify-center p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          {settings.themeMode === 'dark' ? (
+            <KeenIcon icon="sun" className="text-xl text-yellow-400" />
+          ) : (
+            <KeenIcon icon="moon" className="text-xl text-gray-600" />
+          )}
+        </div>
+      </Menu>
+      {/* <Menu>
+        <div className="menu-item mb-0.5">
+          <div className="menu-link">
+            <span className="menu-icon">
+              <KeenIcon icon="moon" />
+            </span>
+            <span className="menu-title">
+              <FormattedMessage id="USER.MENU.DARK_MODE" />
+            </span>
+            <label className="switch switch-sm">
+              <input
+                name="theme"
+                type="checkbox"
+                checked={settings.themeMode === 'dark'}
+                onChange={handleThemeMode}
+                value="1"
+              />
+            </label>
+          </div>
+        </div>
+      </Menu> */}
+      <Menu>
+        <div className="menu-item px-4 py-1.5">
+          <a onClick={logout} className="">
+            {/* <FormattedMessage id="USER.MENU.LOGOUT" /> */}
+            <KeenIcon icon={'exit-right'} className="text-1.5xl text-gray-500" />
+          </a>
+        </div>
+      </Menu>
       <Menu>
         <MenuItem
           ref={itemUserRef}
@@ -135,7 +191,7 @@ const HeaderTopbar = () => {
               alt=""
             />
           </MenuToggle>
-          {DropdownUser({ menuItemRef: itemUserRef })}
+          {/* {DropdownUser({ menuItemRef: itemUserRef })} */}
         </MenuItem>
       </Menu>
     </div>
