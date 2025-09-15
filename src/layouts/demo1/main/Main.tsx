@@ -58,7 +58,7 @@ const Main = () => {
           <Outlet />
         </main>
 
-        <Footer />
+        {/* <Footer /> */}
       </div>
     </Fragment>
   );

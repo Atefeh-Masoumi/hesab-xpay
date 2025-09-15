@@ -12,7 +12,7 @@ export const MENU_SIDEBAR: TMenuConfig = [
     path: '/network/user-cards/mini-cards'
   },
   {
-    title: 'فاکتورها',
+    title: 'سند ها',
     icon: 'note-2',
     path: '/invoices'
   }

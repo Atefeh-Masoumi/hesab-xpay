@@ -11,12 +11,19 @@ const I18N_MESSAGES = {
   ar: arMessages,
   fr: frMessages,
   zh: zhMessages,
-  fa:faMessages,
+  fa: faMessages
 };
 
 const I18N_CONFIG_KEY = 'i18nConfig';
 
 const I18N_LANGUAGES: readonly TLanguage[] = [
+  {
+    label: 'Farsi ',
+    code: 'fa',
+    direction: 'rtl',
+    flag: toAbsoluteUrl('/media/flag/iran.svg'),
+    messages: I18N_MESSAGES.fa
+  },
   {
     label: 'English',
     code: 'en',
@@ -24,14 +31,6 @@ const I18N_LANGUAGES: readonly TLanguage[] = [
     flag: toAbsoluteUrl('/media/flag/united-states.svg'),
     messages: I18N_MESSAGES.en
   },
-  {
-    label: 'Farsi ',
-    code: 'fa',
-    direction: 'rtl',
-    flag: toAbsoluteUrl('/media/flag/iran.svg'),
-    messages: I18N_MESSAGES.fa
-  }
-  
 ];
 
 const I18N_DEFAULT_LANGUAGE: TLanguage = I18N_LANGUAGES[0];
