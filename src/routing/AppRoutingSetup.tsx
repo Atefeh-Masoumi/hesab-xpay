@@ -82,6 +82,8 @@ import {
   AuthenticationAccountDeactivatedPage,
   AuthenticationGetStartedPage
 } from '@/pages/authentication';
+import CustomerPage from '@/pages/dashboards/customer/CustomerPage';
+import SanadPage from '@/pages/dashboards/sanad/Sanad';
 
 const AppRoutingSetup = (): ReactElement => {
   return (
@@ -89,8 +91,10 @@ const AppRoutingSetup = (): ReactElement => {
       <Route element={<RequireAuth />}>
         <Route element={<Demo1Layout />}>
           <Route path="/" element={<DefaultPage />} />
+         <Route path="/customer" element={<CustomerPage />} />
+         <Route path="/sanad" element={<SanadPage />} />
+
          
-          
           <Route path="/dark-sidebar" element={<Demo1DarkSidebarPage />} />
           <Route path="/public-profile/profiles/default" element={<ProfileDefaultPage />} />
           <Route path="/public-profile/profiles/creator" element={<ProfileCreatorPage />} />

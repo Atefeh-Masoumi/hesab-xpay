@@ -9,12 +9,12 @@ export const MENU_SIDEBAR: TMenuConfig = [
   {
     title: 'مشتریان',
     icon: 'users',
-    path: '/network/user-cards/mini-cards'
+    path: '/customer'
   },
   {
     title: 'سند ها',
     icon: 'note-2',
-    path: '/public-profile/teams'
+    path: '/sanad'
   }
 ];
 export const MENU_MEGA: TMenuConfig = [
