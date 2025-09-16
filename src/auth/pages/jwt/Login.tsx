@@ -161,7 +161,7 @@ const Login = () => {
         {step === 'code' && (
           <div className="flex flex-col gap-1" >
             <label className="form-label text-gray-900">کد تایید</label>
-            <div className="flex flex-wrap justify-center gap-2.5">
+            <div className="flex flex-wrap justify-center gap-2.5" dir="ltr">
               {codeInputs.map((value, index) => (
                 <input
                   key={index}
