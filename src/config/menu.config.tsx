@@ -14,7 +14,7 @@ export const MENU_SIDEBAR: TMenuConfig = [
   {
     title: 'سند ها',
     icon: 'note-2',
-    path: '/invoices'
+    path: '/public-profile/teams'
   }
 ];
 export const MENU_MEGA: TMenuConfig = [
