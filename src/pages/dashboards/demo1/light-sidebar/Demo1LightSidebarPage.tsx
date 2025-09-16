@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { KeenIcon } from '@/components/keenicons';
 import { useSummary } from '@/services/invoiceService';
 import { digitSeparator } from '@/utils';
+import { CustomerSummaryTable } from '@/components/CustomerSummaryTable';
 
 const Demo1LightSidebarPage = () => {
   const [date, setDate] = useState<DateRange | undefined>({
@@ -108,6 +109,12 @@ const Demo1LightSidebarPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Customer Summary Table */}
+          <div className="flex flex-col gap-5 lg:gap-7.5">
+            <h3 className="text-lg text-gray-800 font-semibold">جدول خلاصه مشتریان</h3>
+            <CustomerSummaryTable />
           </div>
         </div>
       </Container>

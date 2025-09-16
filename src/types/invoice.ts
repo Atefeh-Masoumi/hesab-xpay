@@ -18,8 +18,38 @@ export interface Summary {
   volumePaymentIRT?: number;
 }
 
+export interface Report {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  customerCode: string;
+  tether: number;
+  irt: number;
+  pm: number;
+}
+
+export interface PaginationData {
+  pageSize: number;
+  pageIndex: number;
+  totalPages: number;
+  totalCount: number;
+  hasPreviousPage: boolean;
+}
+
+export interface PaginationList<T> {
+  pagination: PaginationData;
+  items: T[];
+}
+
 export interface InvoiceApiResponse {
   data: Summary;
+  status: number;
+  message?: string;
+}
+
+export interface CustomerSummaryApiResponse {
+  value: PaginationList<Report>;
   status: number;
   message?: string;
 }
