@@ -53,3 +53,37 @@ export interface CustomerSummaryApiResponse {
   status: number;
   message?: string;
 }
+
+export interface Customer {
+  id: number;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  customerCode: string;
+  description: string;
+}
+
+export interface CustomerAddRequestBody {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  description: string;
+}
+
+export interface CustomerSummary {
+  irt: number;
+  pm: number;
+  tether: number;
+}
+
+export interface CustomerApiResponse {
+  value: PaginationList<Customer>;
+  status: number;
+  message?: string;
+}
+
+export interface CustomerSummaryDetailsResponse {
+  value: CustomerSummary;
+  status: number;
+  message?: string;
+}
