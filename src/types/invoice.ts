@@ -87,3 +87,54 @@ export interface CustomerSummaryDetailsResponse {
   status: number;
   message?: string;
 }
+
+export interface Enum {
+  id: number;
+  title: string;
+}
+
+export interface Invoice {
+  id: string;
+  amount: number;
+  rate: number;
+  symbol: Enum;
+  type: Enum;
+  description: string;
+  txId: string;
+  customerId: number;
+  name: string;
+  phoneNumber: string;
+}
+
+export interface InvoiceAddRequestBody {
+  amount: number;
+  rate: number;
+  symbol: Enum;
+  type: Enum;
+  description: string;
+  txId: string;
+  customerId: number;
+}
+
+export interface InvoiceEditRequestBody {
+  id: string;
+  amount: number;
+  rate: number;
+  symbol: number;
+  type: number;
+  description: string;
+  txId: string;
+  customerId: number;
+}
+
+export interface InvoiceApiResponseList {
+  value: PaginationList<Invoice>;
+  status: number;
+  message?: string;
+}
+
+export interface EnumApiResponse {
+  value: Enum[];
+  status: number;
+  message?: string;
+}
