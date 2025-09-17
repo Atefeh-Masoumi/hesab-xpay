@@ -673,15 +673,16 @@ const SanadPage = () => {
             <ModalTitle>ویرایش فاکتور</ModalTitle>
           </ModalHeader>
           <ModalBody className="space-y-4">
-          
-            
+           
+             
             {/* Customer Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">مشتری</label>
               <select
                 value={selectedCustomer || ''}
                 onChange={(e) => setSelectedCustomer(e.target.value ? Number(e.target.value) : null)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                disabled={true}
+                className="flex h-10 w-full rounded-md border border-input bg-gray-100 px-3 py-2 text-sm ring-offset-background cursor-not-allowed opacity-60"
               >
                 <option value="">انتخاب مشتری</option>
                 {customers.map((customer) => (
