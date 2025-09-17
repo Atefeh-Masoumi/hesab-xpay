@@ -39,6 +39,8 @@ const removeAuth = () => {
 
 export function setupAxios(axios: any) {
   axios.defaults.headers.Accept = 'application/json';
+  
+  // Request interceptor - Add auth token to requests
   axios.interceptors.request.use(
     (config: { headers: { Authorization: string } }) => {
       const auth = getAuth();
@@ -50,6 +52,31 @@ export function setupAxios(axios: any) {
       return config;
     },
     async (err: any) => await Promise.reject(err)
+  );
+
+  // Response interceptor - Handle 401 unauthorized responses
+  axios.interceptors.response.use(
+    (response: any) => {
+      // If the response is successful, just return it
+      return response;
+    },
+    async (error: any) => {
+      const { response } = error;
+      
+      // Check if the error is 401 Unauthorized
+      if (response && response.status === 401) {
+        console.log('401 Unauthorized - Redirecting to login');
+        
+        // Clear the stored auth data
+        removeAuth();
+        
+        // Redirect to login page
+        window.location.href = '/auth/login';
+      }
+      
+      // For all other errors, reject the promise
+      return Promise.reject(error);
+    }
   );
 }
 
