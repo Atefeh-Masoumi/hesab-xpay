@@ -42,6 +42,11 @@ const SanadPage = () => {
   const [filteredTypes, setFilteredTypes] = useState<Enum[]>([]);
   const [filteredSymbols, setFilteredSymbols] = useState<Enum[]>([]);
 
+  // Helper function to replace کاربر with مشتری in type titles
+  const transformTypeTitle = (title: string): string => {
+    return title.replace(/کاربر/g, 'مشتری');
+  };
+
   // Load enums and customers on component mount
   useEffect(() => {
     const loadData = async () => {
@@ -52,11 +57,19 @@ const SanadPage = () => {
           getCustomers({ pageIndex: 0, pageSize: 999 })
         ]);
 
-        setTypes(typesData);
+        // Transform type titles to replace کاربر with مشتری
+        const transformedTypes = typesData.map(type => ({
+          ...type,
+          title: transformTypeTitle(type.title)
+        }));
+
+        setTypes(transformedTypes);
         setSymbols(symbolsData);
         setCustomers(customersData.data);
-        setFilteredTypes(typesData);
+        setFilteredTypes(transformedTypes);
         setFilteredSymbols(symbolsData);
+       
+        
       } catch (error) {
         toast.error('خطا در دریافت اطلاعات اولیه');
       }
@@ -463,7 +476,7 @@ const SanadPage = () => {
             onClick={() => setIsCreateModalOpen(true)}
           >
             <KeenIcon icon="plus" />
-            افزودن فاکتور
+            افزودن سند
           </button>
         </div>
       </div>
@@ -474,7 +487,7 @@ const SanadPage = () => {
     <Fragment>
       <Container>
         <Toolbar>
-          <ToolbarHeading title="مدیریت فاکتورها" description="مشاهده، ویرایش و مدیریت فاکتورهای فروش و خرید" />
+          <ToolbarHeading title="مدیریت سند ها" description="مشاهده، ویرایش و مدیریت سندهای فروش و خرید" />
         </Toolbar>
       </Container>
 
