@@ -37,6 +37,10 @@ const SanadPage = () => {
     customerId: 0
   });
 
+  // Separate state for display values to avoid formatting conflicts
+  const [amountDisplay, setAmountDisplay] = useState<string>('');
+  const [rateDisplay, setRateDisplay] = useState<string>('');
+
   const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null);
   const [selectedType, setSelectedType] = useState<number | null>(null);
   const [selectedSymbol, setSelectedSymbol] = useState<number | null>(null);
@@ -111,6 +115,8 @@ const SanadPage = () => {
       txId: "",
       customerId: 0
     });
+    setAmountDisplay('');
+    setRateDisplay('');
     setSelectedCustomer(null);
     setSelectedType(null);
     setSelectedSymbol(null);
@@ -239,6 +245,10 @@ const SanadPage = () => {
         txId: selectedInvoice.txId,
         customerId: matchedCustomer?.id || 0,
       });
+      
+      // Set display values
+      setAmountDisplay(selectedInvoice.amount > 0 ? digitSeparator(selectedInvoice.amount) : '');
+      setRateDisplay(selectedInvoice.rate > 0 ? digitSeparator(selectedInvoice.rate) : '');
       
 
       
@@ -609,8 +619,24 @@ const SanadPage = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">مقدار</label>
                 <Input
-                  value={digitSeparator(invoiceInfo.amount)}
-                  onChange={(e) => setInvoiceInfo({...invoiceInfo, amount: removeCommaFromNumber(e.target.value)})}
+                  value={amountDisplay}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Only allow numbers and commas
+                    if (/^[0-9,]*$/.test(value)) {
+                      setAmountDisplay(value);
+                      const numericValue = removeCommaFromNumber(value);
+                      if (!isNaN(numericValue)) {
+                        setInvoiceInfo({...invoiceInfo, amount: numericValue});
+                      }
+                    }
+                  }}
+                  onBlur={() => {
+                    // Format on blur
+                    if (invoiceInfo.amount > 0) {
+                      setAmountDisplay(digitSeparator(invoiceInfo.amount));
+                    }
+                  }}
                   placeholder="مقدار را وارد کنید"
                 />
               </div>
@@ -620,8 +646,24 @@ const SanadPage = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">نرخ</label>
                   <Input
-                    value={digitSeparator(invoiceInfo.rate)}
-                    onChange={(e) => setInvoiceInfo({...invoiceInfo, rate: removeCommaFromNumber(e.target.value)})}
+                    value={rateDisplay}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Only allow numbers and commas
+                      if (/^[0-9,]*$/.test(value)) {
+                        setRateDisplay(value);
+                        const numericValue = removeCommaFromNumber(value);
+                        if (!isNaN(numericValue)) {
+                          setInvoiceInfo({...invoiceInfo, rate: numericValue});
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      // Format on blur
+                      if (invoiceInfo.rate > 0) {
+                        setRateDisplay(digitSeparator(invoiceInfo.rate));
+                      }
+                    }}
                     placeholder="نرخ را وارد کنید"
                   />
                 </div>
@@ -629,13 +671,23 @@ const SanadPage = () => {
             </div>
 
             {/* Transaction Hash - only show for symbol 1 (USDT) */}
-            {selectedSymbol === 1 && (
+            {selectedSymbol === 1 && selectedType !== 1 && selectedType !== 2 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">هش تراکنش</label>
                 <Input
                   value={invoiceInfo.txId}
                   onChange={(e) => setInvoiceInfo({...invoiceInfo, txId: e.target.value})}
                   placeholder="هش تراکنش را وارد کنید"
+                />
+              </div>
+            )}
+             {selectedSymbol === 3 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">کد پیگیری</label>
+                <Input
+                  value={invoiceInfo.txId}
+                  onChange={(e) => setInvoiceInfo({...invoiceInfo, txId: e.target.value})}
+                  placeholder=" کد پیگیری را وارد کنید"
                 />
               </div>
             )}
@@ -734,8 +786,24 @@ const SanadPage = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">مقدار</label>
                 <Input
-                  value={digitSeparator(invoiceInfo.amount)}
-                  onChange={(e) => setInvoiceInfo({...invoiceInfo, amount: removeCommaFromNumber(e.target.value)})}
+                  value={amountDisplay}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Only allow numbers and commas
+                    if (/^[0-9,]*$/.test(value)) {
+                      setAmountDisplay(value);
+                      const numericValue = removeCommaFromNumber(value);
+                      if (!isNaN(numericValue)) {
+                        setInvoiceInfo({...invoiceInfo, amount: numericValue});
+                      }
+                    }
+                  }}
+                  onBlur={() => {
+                    // Format on blur
+                    if (invoiceInfo.amount > 0) {
+                      setAmountDisplay(digitSeparator(invoiceInfo.amount));
+                    }
+                  }}
                   placeholder="مقدار را وارد کنید"
                 />
               </div>
