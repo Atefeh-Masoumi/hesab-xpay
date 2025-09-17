@@ -9,8 +9,6 @@ export const getSummary = async (): Promise<Summary> => {
   try {
     const response = await axios.get<InvoiceApiResponse>(`${API_URL}/Invoice/GetSummary`);
     
-    // Log the response to debug the structure
-    console.log('API Response:', response.data);
     
     // Check if the response has the expected structure
     if (response.data && typeof response.data === 'object') {
@@ -45,7 +43,6 @@ export const getSummary = async (): Promise<Summary> => {
       volumePaymentIRT: 0,
     };
   } catch (error) {
-    console.error('Failed to fetch summary:', error);
     // Return default values instead of throwing
     return {
       countBuyInvoices: 0,
@@ -91,7 +88,6 @@ export const getCustomersSummary = async (params: TDataGridRequestParams & { key
 
     const response = await axios.get<CustomerSummaryApiResponse>(url);
     
-    console.log('Customer Summary API Response:', response.data);
     
     if (response.status === 200 && response.data && response.data.value) {
       return {
@@ -105,7 +101,6 @@ export const getCustomersSummary = async (params: TDataGridRequestParams & { key
       totalCount: 0
     };
   } catch (error) {
-    console.error('Failed to fetch customers summary:', error);
     return {
       data: [],
       totalCount: 0
@@ -144,7 +139,6 @@ export const getInvoices = async (params: TDataGridRequestParams & {
 
     const response = await axios.get<InvoiceApiResponseList>(url);
     
-    console.log('Invoice API Response:', response.data);
     
     if (response.status === 200 && response.data && response.data.value) {
       return {
@@ -158,7 +152,6 @@ export const getInvoices = async (params: TDataGridRequestParams & {
       totalCount: 0
     };
   } catch (error) {
-    console.error('Failed to fetch invoices:', error);
     return {
       data: [],
       totalCount: 0
@@ -178,11 +171,9 @@ export const createInvoice = async (invoiceData: {
   try {
     const response = await axios.post(`${API_URL}/Invoice/Add`, invoiceData);
     
-    console.log('Create Invoice Response:', response.data);
     
     return response.status === 200;
   } catch (error) {
-    console.error('Failed to create invoice:', error);
     throw error;
   }
 };
@@ -191,11 +182,9 @@ export const updateInvoice = async (invoiceData: InvoiceEditRequestBody): Promis
   try {
     const response = await axios.post(`${API_URL}/Invoice/Edit`, invoiceData);
     
-    console.log('Update Invoice Response:', response.data);
     
     return response.status === 200;
   } catch (error) {
-    console.error('Failed to update invoice:', error);
     throw error;
   }
 };
@@ -206,11 +195,8 @@ export const deleteInvoice = async (id: string): Promise<boolean> => {
       data: { id }
     });
     
-    console.log('Delete Invoice Response:', response.data);
-    
     return response.status === 200;
   } catch (error) {
-    console.error('Failed to delete invoice:', error);
     throw error;
   }
 };
@@ -219,7 +205,6 @@ export const getInvoiceTypes = async (): Promise<Enum[]> => {
   try {
     const response = await axios.get<EnumApiResponse>(`${API_URL}/Enum/InvoiceType`);
     
-    console.log('Invoice Types Response:', response.data);
     
     if (response.status === 200 && response.data && response.data.value) {
       return response.data.value;
@@ -227,7 +212,6 @@ export const getInvoiceTypes = async (): Promise<Enum[]> => {
     
     return [];
   } catch (error) {
-    console.error('Failed to fetch invoice types:', error);
     return [];
   }
 };
@@ -236,7 +220,6 @@ export const getInvoiceSymbols = async (): Promise<Enum[]> => {
   try {
     const response = await axios.get<EnumApiResponse>(`${API_URL}/Enum/InvoiceSymbol`);
     
-    console.log('Invoice Symbols Response:', response.data);
     
     if (response.status === 200 && response.data && response.data.value) {
       return response.data.value;
@@ -244,7 +227,6 @@ export const getInvoiceSymbols = async (): Promise<Enum[]> => {
     
     return [];
   } catch (error) {
-    console.error('Failed to fetch invoice symbols:', error);
     return [];
   }
 };
