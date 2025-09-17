@@ -11,8 +11,7 @@ import { Alert } from '@/components';
 
 const loginSchema = Yup.object().shape({
   phoneNumber: Yup.string()
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
+    .min(10, 'تعداد ارقام درست نیست باید 11 رقم باشد')
     .required('شماره موبایل الزامی است'),
   password: Yup.string()
     .min(3, 'Minimum 3 symbols')
