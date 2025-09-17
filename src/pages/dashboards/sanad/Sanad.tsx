@@ -121,6 +121,7 @@ const SanadPage = () => {
   };
 
   const handleEditInvoice = (invoice: Invoice) => {
+    console.log('handleEditInvoice called with:', invoice);
     setSelectedInvoice(invoice);
     setIsEditModalOpen(true);
   };
@@ -161,7 +162,17 @@ const SanadPage = () => {
   };
 
   const handleEditInvoiceSubmit = async () => {
-    if (!selectedInvoice || !selectedCustomer || !selectedType || !selectedSymbol) return;
+    console.log('Edit button clicked!');
+    console.log('selectedInvoice:', selectedInvoice);
+    console.log('selectedCustomer:', selectedCustomer);
+    console.log('selectedType:', selectedType);
+    console.log('selectedSymbol:', selectedSymbol);
+    console.log('invoiceInfo:', invoiceInfo);
+    
+    if (!selectedInvoice || !selectedCustomer || !selectedType || !selectedSymbol) {
+      toast.error('لطفاً تمام فیلدهای اجباری را پر کنید');
+      return;
+    }
     
     try {
       const success = await updateInvoice({
@@ -185,6 +196,7 @@ const SanadPage = () => {
         toast.error('خطا در ویرایش فاکتور');
       }
     } catch (error) {
+      console.error('Edit error:', error);
       toast.error('خطا در ویرایش فاکتور');
     }
   };
@@ -209,7 +221,22 @@ const SanadPage = () => {
 
   // Load invoice data when edit modal opens
   useEffect(() => {
-    if (isEditModalOpen && selectedInvoice) {
+    if (isEditModalOpen && selectedInvoice && customers.length > 0) {
+      
+      // Try to find customer by name or phone number if customerId is not available
+      let matchedCustomer = null;
+      if (selectedInvoice.customerId) {
+        matchedCustomer = customers.find(customer => customer.id === selectedInvoice.customerId);
+      } else {
+        // Try to find by name and phone
+        matchedCustomer = customers.find(customer => 
+          customer.firstName + ' ' + customer.lastName === selectedInvoice.name ||
+          customer.phoneNumber === selectedInvoice.phoneNumber
+        );
+      }
+      
+      console.log('Matched customer:', matchedCustomer);
+      
       setInvoiceInfo({
         amount: selectedInvoice.amount,
         rate: selectedInvoice.rate,
@@ -217,13 +244,26 @@ const SanadPage = () => {
         type: selectedInvoice.type,
         description: selectedInvoice.description,
         txId: selectedInvoice.txId,
-        customerId: selectedInvoice.customerId,
+        customerId: matchedCustomer?.id || 0,
       });
-      setSelectedCustomer(selectedInvoice.customerId);
-      setSelectedType(selectedInvoice.type.id);
-      setSelectedSymbol(selectedInvoice.symbol.id);
+      
+
+      
+      // Use setTimeout to ensure state updates properly
+      setTimeout(() => {
+        setSelectedCustomer(matchedCustomer?.id || null);
+        setSelectedType(selectedInvoice.type.id);
+        setSelectedSymbol(selectedInvoice.symbol.id);
+        console.log('State set - selectedCustomer:', matchedCustomer?.id);
+      }, 100);
+      
+    } else if (isEditModalOpen) {
+      console.log('Edit modal opened but missing data:', {
+        selectedInvoice: !!selectedInvoice,
+        customersLoaded: customers.length
+      });
     }
-  }, [isEditModalOpen, selectedInvoice]);
+  }, [isEditModalOpen, selectedInvoice, customers]);
 
   const fetchInvoices = async (params: TDataGridRequestParams) => {
     try {
@@ -522,53 +562,53 @@ const SanadPage = () => {
             {/* Customer Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">مشتری</label>
-              <Select value={selectedCustomer?.toString() || ''} onValueChange={(value) => setSelectedCustomer(Number(value))}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="انتخاب مشتری" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id.toString()}>
-                      {customer.firstName} {customer.lastName} - {customer.customerCode} - {customer.phoneNumber}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                value={selectedCustomer || ''}
+                onChange={(e) => setSelectedCustomer(e.target.value ? Number(e.target.value) : null)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="">انتخاب مشتری</option>
+                {customers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.firstName} {customer.lastName} 
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               {/* Type Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">نوع تراکنش</label>
-                <Select value={selectedType?.toString() || ''} onValueChange={(value) => setSelectedType(Number(value))}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="انتخاب نوع" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.id.toString()}>
-                        {type.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <select
+                  value={selectedType || ''}
+                  onChange={(e) => setSelectedType(e.target.value ? Number(e.target.value) : null)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">انتخاب نوع</option>
+                  {filteredTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.title}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Symbol Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">نوع ارز</label>
-                <Select value={selectedSymbol?.toString() || ''} onValueChange={(value) => setSelectedSymbol(Number(value))}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="انتخاب ارز" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredSymbols.map((symbol) => (
-                      <SelectItem key={symbol.id} value={symbol.id.toString()}>
-                        {symbol.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <select
+                  value={selectedSymbol || ''}
+                  onChange={(e) => setSelectedSymbol(e.target.value ? Number(e.target.value) : null)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">انتخاب ارز</option>
+                  {filteredSymbols.map((symbol) => (
+                    <option key={symbol.id} value={symbol.id}>
+                      {symbol.title}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -641,56 +681,58 @@ const SanadPage = () => {
             <ModalTitle>ویرایش فاکتور</ModalTitle>
           </ModalHeader>
           <ModalBody className="space-y-4">
+          
+            
             {/* Customer Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">مشتری</label>
-              <Select value={selectedCustomer?.toString() || ''} onValueChange={(value) => setSelectedCustomer(Number(value))}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="انتخاب مشتری" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id.toString()}>
-                      {customer.firstName} {customer.lastName} - {customer.customerCode} - {customer.phoneNumber}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                value={selectedCustomer || ''}
+                onChange={(e) => setSelectedCustomer(e.target.value ? Number(e.target.value) : null)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="">انتخاب مشتری</option>
+                {customers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.firstName} {customer.lastName} 
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               {/* Type Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">نوع تراکنش</label>
-                <Select value={selectedType?.toString() || ''} onValueChange={(value) => setSelectedType(Number(value))}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="انتخاب نوع" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.id.toString()}>
-                        {type.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <select
+                  value={selectedType || ''}
+                  onChange={(e) => setSelectedType(e.target.value ? Number(e.target.value) : null)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">انتخاب نوع</option>
+                  {filteredTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.title}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Symbol Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">نوع ارز</label>
-                <Select value={selectedSymbol?.toString() || ''} onValueChange={(value) => setSelectedSymbol(Number(value))}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="انتخاب ارز" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredSymbols.map((symbol) => (
-                      <SelectItem key={symbol.id} value={symbol.id.toString()}>
-                        {symbol.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <select
+                  value={selectedSymbol || ''}
+                  onChange={(e) => setSelectedSymbol(e.target.value ? Number(e.target.value) : null)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">انتخاب ارز</option>
+                  {filteredSymbols.map((symbol) => (
+                    <option key={symbol.id} value={symbol.id}>
+                      {symbol.title}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
