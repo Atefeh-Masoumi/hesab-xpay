@@ -121,7 +121,6 @@ const SanadPage = () => {
   };
 
   const handleEditInvoice = (invoice: Invoice) => {
-    console.log('handleEditInvoice called with:', invoice);
     setSelectedInvoice(invoice);
     setIsEditModalOpen(true);
   };
@@ -162,12 +161,7 @@ const SanadPage = () => {
   };
 
   const handleEditInvoiceSubmit = async () => {
-    console.log('Edit button clicked!');
-    console.log('selectedInvoice:', selectedInvoice);
-    console.log('selectedCustomer:', selectedCustomer);
-    console.log('selectedType:', selectedType);
-    console.log('selectedSymbol:', selectedSymbol);
-    console.log('invoiceInfo:', invoiceInfo);
+    
     
     if (!selectedInvoice || !selectedCustomer || !selectedType || !selectedSymbol) {
       toast.error('لطفاً تمام فیلدهای اجباری را پر کنید');
@@ -235,7 +229,6 @@ const SanadPage = () => {
         );
       }
       
-      console.log('Matched customer:', matchedCustomer);
       
       setInvoiceInfo({
         amount: selectedInvoice.amount,
@@ -254,7 +247,6 @@ const SanadPage = () => {
         setSelectedCustomer(matchedCustomer?.id || null);
         setSelectedType(selectedInvoice.type.id);
         setSelectedSymbol(selectedInvoice.symbol.id);
-        console.log('State set - selectedCustomer:', matchedCustomer?.id);
       }, 100);
       
     } else if (isEditModalOpen) {
