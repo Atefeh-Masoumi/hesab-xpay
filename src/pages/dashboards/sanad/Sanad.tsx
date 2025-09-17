@@ -389,13 +389,13 @@ const SanadPage = () => {
                 <KeenIcon icon="notepad-edit" className="text-gray-500" />
               </button>
               
-              <button
+              {/* <button
                 onClick={() => handleDeleteInvoice(invoice)}
                 className="btn btn-icon btn-xs btn-clear btn-light"
                 title="حذف"
               >
                 <KeenIcon icon="trash" className="text-red-500" />
-              </button>
+              </button> */}
             </div>
           );
         },
