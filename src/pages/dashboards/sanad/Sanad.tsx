@@ -298,7 +298,7 @@ const SanadPage = () => {
         cell: ({ row }) => {
           return (
             <span className="text-sm font-medium text-gray-900">
-              {row.original.type.title}
+              {transformTypeTitle(row.original.type.title)}
             </span>
           );
         },
