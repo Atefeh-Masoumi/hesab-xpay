@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { DataGrid, DataGridColumnHeader, KeenIcon, useDataGrid } from '@/components';
 import { ColumnDef, Column } from '@tanstack/react-table';
 import { Input } from '@/components/ui/input';
@@ -485,6 +485,8 @@ const CustomerManagementTableContent = ({
 export const CustomerManagementTable = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -691,9 +693,35 @@ export const CustomerManagementTable = () => {
     [handleEditCustomer, handleCustomerInfo, handleDeleteCustomer]
   );
 
+  // We'll handle debounced search inside the Toolbar component using DataGrid's reload method
+
+  // Simple search query update without triggering refresh
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+  }, []);
+
   const Toolbar = () => {
+    const { reload } = useDataGrid(); // Use DataGrid's reload method
+
+    // Debounced search effect - safely uses reload without affecting input focus
+    useEffect(() => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      
+      searchTimeoutRef.current = setTimeout(() => {
+        reload(); // Use DataGrid's native reload
+      }, 300);
+
+      return () => {
+        if (searchTimeoutRef.current) {
+          clearTimeout(searchTimeoutRef.current);
+        }
+      };
+    }, [searchQuery]); // Remove reload from dependencies to prevent infinite loop
+
     const handleSearch = () => {
-      triggerRefresh();
+      reload(); // Use DataGrid's native reload instead of key manipulation
     };
 
     return (
@@ -705,10 +733,11 @@ export const CustomerManagementTable = () => {
             <label className="input input-sm">
               <KeenIcon icon="magnifier" />
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="جستجوی مشتری..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleSearch();

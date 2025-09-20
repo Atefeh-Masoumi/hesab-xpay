@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect, Fragment } from 'react';
-import { DataGrid, DataGridColumnHeader, KeenIcon, Container } from '@/components';
+import React, { useMemo, useState, useEffect, Fragment, useRef, useCallback } from 'react';
+import { DataGrid, DataGridColumnHeader, KeenIcon, Container, useDataGrid } from '@/components';
 import { Toolbar, ToolbarHeading } from '@/layouts/demo1/toolbar';
 import { ColumnDef } from '@tanstack/react-table';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,8 @@ const SanadPage = () => {
   const [typeFilter, setTypeFilter] = useState(-1);
   const [symbolFilter, setSymbolFilter] = useState(-1);
   const [refreshKey, setRefreshKey] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -453,9 +455,33 @@ const SanadPage = () => {
     [handleEditInvoice, handleDeleteInvoice]
   );
 
+  // Simple search query update without triggering refresh
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+  }, []);
+
   const TableToolbar = () => {
+    const { reload } = useDataGrid(); // Use DataGrid's reload method
+
+    // Debounced search effect - safely uses reload without affecting input focus
+    useEffect(() => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      
+      searchTimeoutRef.current = setTimeout(() => {
+        reload(); // Use DataGrid's native reload
+      }, 300);
+
+      return () => {
+        if (searchTimeoutRef.current) {
+          clearTimeout(searchTimeoutRef.current);
+        }
+      };
+    }, [searchQuery]); // Remove reload from dependencies to prevent infinite loop
+
     const handleSearch = () => {
-      triggerRefresh();
+      reload(); // Use DataGrid's native reload instead of key manipulation
     };
 
     return (
@@ -467,10 +493,11 @@ const SanadPage = () => {
             <label className="input input-sm">
               <KeenIcon icon="magnifier" />
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="جستجوی سند..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleSearch();
