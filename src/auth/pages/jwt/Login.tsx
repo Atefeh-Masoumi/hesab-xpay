@@ -109,6 +109,7 @@ const Login = () => {
               <label className="form-label text-gray-900 ">شماره موبایل </label>
               <label className="input">
                 <input
+                  dir="ltr"
                   placeholder="Enter Phone Number"
                   autoComplete="off"
                   {...formik.getFieldProps('phoneNumber')}
@@ -129,6 +130,7 @@ const Login = () => {
               </div>
               <label className="input">
                 <input
+                  dir="ltr"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter Password"
                   autoComplete="off"
