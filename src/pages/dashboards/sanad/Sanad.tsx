@@ -154,15 +154,15 @@ const SanadPage = () => {
       });
       
       if (success) {
-        toast.success('فاکتور با موفقیت اضافه شد');
+        toast.success('سند با موفقیت اضافه شد');
         setIsCreateModalOpen(false);
         resetInvoiceInfo();
         triggerRefresh();
       } else {
-        toast.error('خطا در افزودن فاکتور');
+        toast.error('خطا در افزودن سند');
       }
     } catch (error) {
-      toast.error('خطا در افزودن فاکتور');
+      toast.error('خطا در افزودن سند');
     }
   };
 
@@ -187,17 +187,17 @@ const SanadPage = () => {
       });
       
       if (success) {
-        toast.success('فاکتور با موفقیت ویرایش شد');
+        toast.success('سند با موفقیت ویرایش شد');
         setIsEditModalOpen(false);
         setSelectedInvoice(null);
         resetInvoiceInfo();
         triggerRefresh();
       } else {
-        toast.error('خطا در ویرایش فاکتور');
+        toast.error('خطا در ویرایش سند');
       }
     } catch (error) {
       console.error('Edit error:', error);
-      toast.error('خطا در ویرایش فاکتور');
+      toast.error('خطا در ویرایش سند');
     }
   };
 
@@ -207,15 +207,15 @@ const SanadPage = () => {
     try {
       const success = await deleteInvoice(selectedInvoice.id);
       if (success) {
-        toast.success('فاکتور با موفقیت حذف شد');
+        toast.success('سند با موفقیت حذف شد');
         setIsDeleteModalOpen(false);
         setSelectedInvoice(null);
         triggerRefresh();
       } else {
-        toast.error('خطا در حذف فاکتور');
+        toast.error('خطا در حذف سند');
       }
     } catch (error) {
-      toast.error('خطا در حذف فاکتور');
+      toast.error('خطا در حذف سند');
     }
   };
 
@@ -276,7 +276,7 @@ const SanadPage = () => {
         symbol: symbolFilter !== -1 ? symbolFilter : undefined,
       });
     } catch (error) {
-      toast.error('خطا در دریافت اطلاعات فاکتورها');
+      toast.error('خطا در دریافت اطلاعات سندها');
       return {
         data: [],
         totalCount: 0
@@ -460,7 +460,7 @@ const SanadPage = () => {
 
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
-        <h3 className="card-title font-medium text-sm">مدیریت فاکتورها</h3>
+        <h3 className="card-title font-medium text-sm">مدیریت سندها</h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
           <div className="flex">
@@ -468,7 +468,7 @@ const SanadPage = () => {
               <KeenIcon icon="magnifier" />
               <input
                 type="text"
-                placeholder="جستجوی فاکتور..."
+                placeholder="جستجوی سند..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -558,7 +558,7 @@ const SanadPage = () => {
       <Modal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>
         <ModalContent className="max-w-4xl">
           <ModalHeader>
-            <ModalTitle>افزودن فاکتور جدید</ModalTitle>
+            <ModalTitle>افزودن سند جدید</ModalTitle>
           </ModalHeader>
           <ModalBody className="space-y-4">
             {/* Customer Selection */}
@@ -722,7 +722,7 @@ const SanadPage = () => {
       <Modal open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
         <ModalContent className="max-w-4xl">
           <ModalHeader>
-            <ModalTitle>ویرایش فاکتور</ModalTitle>
+            <ModalTitle>ویرایش سند</ModalTitle>
           </ModalHeader>
           <ModalBody className="space-y-4">
            
@@ -870,18 +870,18 @@ const SanadPage = () => {
                 </div>
                 <div>
                   <p className="text-gray-900 font-medium">
-                    آیا از حذف این فاکتور اطمینان دارید؟
+                    آیا از حذف این سند اطمینان دارید؟
                   </p>
                   {selectedInvoice && (
                     <p className="text-gray-600 text-sm mt-1">
-                      فاکتور شماره: {selectedInvoice.id}
+                      سند شماره: {selectedInvoice.id}
                     </p>
                   )}
                 </div>
               </div>
               
               <p className="text-sm text-gray-600">
-                این عمل قابل بازگشت نیست و تمام اطلاعات فاکتور حذف خواهد شد.
+                این عمل قابل بازگشت نیست و تمام اطلاعات سند حذف خواهد شد.
               </p>
               
               <div className="flex justify-end gap-3 pt-4">
@@ -897,7 +897,7 @@ const SanadPage = () => {
                   className="bg-red-600 hover:bg-red-700 text-white"
                 >
                   <KeenIcon icon="trash" className="mr-1" />
-                  حذف فاکتور
+                  حذف سند
                 </Button>
               </div>
             </div>
