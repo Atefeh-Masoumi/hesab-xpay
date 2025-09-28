@@ -84,6 +84,7 @@ import {
 } from '@/pages/authentication';
 import CustomerPage from '@/pages/dashboards/customer/CustomerPage';
 import SanadPage from '@/pages/dashboards/sanad/Sanad';
+import { CustomerSummaryPage } from '@/pages/dashboards/customer/CustomerSummaryPage';
 
 const AppRoutingSetup = (): ReactElement => {
   return (
@@ -93,7 +94,7 @@ const AppRoutingSetup = (): ReactElement => {
           <Route path="/" element={<DefaultPage />} />
          <Route path="/customer" element={<CustomerPage />} />
          <Route path="/sanad" element={<SanadPage />} />
-
+         <Route path="/customer-summary" element={<CustomerSummaryPage />} />
          
           <Route path="/dark-sidebar" element={<Demo1DarkSidebarPage />} />
           <Route path="/public-profile/profiles/default" element={<ProfileDefaultPage />} />
