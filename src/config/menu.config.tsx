@@ -15,6 +15,11 @@ export const MENU_SIDEBAR: TMenuConfig = [
     title: 'سند ها',
     icon: 'note-2',
     path: '/sanad'
+  },
+  {
+    title: ' خلاصه مشتریان',
+    icon: 'users',
+    path: '/customer-summary'
   }
 ];
 export const MENU_MEGA: TMenuConfig = [
