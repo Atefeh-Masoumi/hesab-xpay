@@ -12,6 +12,7 @@ import { TDataGridRequestParams } from '@/components/data-grid';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalBody } from '@/components/modal';
+import { CurrencySelect } from './currentSelct';
 
 const SanadPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -346,7 +347,7 @@ const SanadPage = () => {
         cell: ({ row }) => {
           return (
             <span className="text-sm font-medium text-gray-900 flex items-center gap-1">
-              {row.original.symbol.title === "تتر" && <div className="flex items-center justify-center clearfix bshadow0 pbs">
+              {row.original.symbol.title === "تتر" && <div className="flex items-center justify-center clearfix bshadow0 pbs text-lg">
                 <span className="ki-outline ki-dollar"><span className="path1"></span><span className="path2"></span></span>
 
               </div>}
@@ -631,23 +632,11 @@ const SanadPage = () => {
 
               {/* Symbol Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">نوع ارز</label>
-                <select
-                  value={selectedSymbol || ''}
-                  onChange={(e) => setSelectedSymbol(e.target.value ? Number(e.target.value) : null)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  <option value="">انتخاب ارز</option>
-                  {filteredSymbols.map((symbol) => (
-                    <option key={symbol.id} value={symbol.id}>
-                      {symbol.title == "تتر" && <div className="flex items-center justify-center clearfix bshadow0 pbs">
-                        <span className="ki-outline ki-dollar"><span className="path1"></span><span className="path2"></span></span>
-                      </div>}
-                      {symbol.title == "تومان" && <img src={toAbsoluteUrl('/media/images/toman.jpg')} className="w-4 h-4" alt="تومان" />}
-                      {symbol.title}
-                    </option>
-                  ))}
-                </select>
+               <CurrencySelect
+                selectedSymbol={selectedSymbol}
+                setSelectedSymbol={setSelectedSymbol}
+                filteredSymbols={filteredSymbols}
+               />
               </div>
             </div>
 
@@ -802,7 +791,7 @@ const SanadPage = () => {
 
               {/* Symbol Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">نوع ارز</label>
+                {/* <label className="block text-sm font-medium text-gray-700 mb-1">نوع ارز</label>
                 <select
                   value={selectedSymbol || ''}
                   onChange={(e) => setSelectedSymbol(e.target.value ? Number(e.target.value) : null)}
@@ -818,7 +807,12 @@ const SanadPage = () => {
                       {symbol.title}
                     </option>
                   ))}
-                </select>
+                </select> */}
+                <CurrencySelect
+                selectedSymbol={selectedSymbol}
+                setSelectedSymbol={setSelectedSymbol}
+                filteredSymbols={filteredSymbols}
+               />
               </div>
             </div>
 
