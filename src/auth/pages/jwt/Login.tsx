@@ -76,7 +76,25 @@ const Login = () => {
       setLoading(false);
     }
   });
-
+  const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    const pasteData = event.clipboardData.getData("Text").trim();
+    if (!/^[0-9]+$/.test(pasteData)) return; 
+  
+    const digits = pasteData.split("").slice(0, codeInputs.length);
+    const newInputs = [...codeInputs];
+  
+    digits.forEach((digit, i) => {
+      newInputs[i] = digit;
+    });
+  
+    setCodeInputs(newInputs);
+  
+    const lastIndex = digits.length - 1;
+    const lastInput = document.querySelector<HTMLInputElement>(`#code-input-${lastIndex}`);
+    lastInput?.focus();
+  };
+  
   const handleInputChange = (index: number, value: string) => {
     if (!/^[0-9]?$/.test(value)) return;
     const newInputs = [...codeInputs];
@@ -172,11 +190,12 @@ const Login = () => {
                   className="input focus:border-primary-clarity focus:ring focus:ring-primary-clarity size-10 shrink-0 px-0 text-center"
                   value={value}
                   onChange={(e) => handleInputChange(index, e.target.value)}
+                  onPaste={handlePaste}
                 />
               ))}
             </div>
           </div>
-        )}
+        )}123456
 
         <button
           type="submit"
