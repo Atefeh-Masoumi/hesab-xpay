@@ -540,7 +540,9 @@ const SanadPage = () => {
               <SelectContent className="w-34">
                 <SelectItem value="-1">همه ارزها</SelectItem>
                 {symbols.map((symbol) => (
-                  <SelectItem key={symbol.id} value={symbol.id.toString()}>
+                  <SelectItem key={symbol.id} value={symbol.id.toString()} className="flex items-center gap-1">
+                    {symbol.title === "تتر" && <span className="ki-outline ki-dollar text-md px-1" />}
+                    {symbol.title === "تومان" && <img src={toAbsoluteUrl('/media/images/toman.jpg')} className="mx-1 w-4 h-4 inline-flex" alt="تومان" />}
                     {symbol.title}
                   </SelectItem>
                 ))}
