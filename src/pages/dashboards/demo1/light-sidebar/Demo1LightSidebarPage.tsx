@@ -1,17 +1,11 @@
 import { Fragment, useState } from 'react';
 import { Container } from '@/components/container';
-import { Toolbar, ToolbarActions, ToolbarHeading } from '@/layouts/demo1/toolbar';
-import { Demo1LightSidebarContent } from './';
-
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { Toolbar, ToolbarHeading } from '@/layouts/demo1/toolbar';
 import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { KeenIcon } from '@/components/keenicons';
 import { useSummary } from '@/services/invoiceService';
 import { digitSeparator } from '@/utils';
-import { CustomerSummaryTable } from '@/components/CustomerSummaryTable';
 
 const Demo1LightSidebarPage = () => {
   const [date, setDate] = useState<DateRange | undefined>({
@@ -33,8 +27,8 @@ const Demo1LightSidebarPage = () => {
     {
       title: 'حجم معاملات',
       items: [
-        { label: 'جمع خرید پرفکت مانی', value: summary?.volumeBuyPm },
-        { label: 'جمع فروش پرفکت مانی', value: summary?.volumeSellPm },
+        // { label: 'جمع خرید پرفکت مانی', value: summary?.volumeBuyPm },
+        // { label: 'جمع فروش پرفکت مانی', value: summary?.volumeSellPm },
         { label: 'جمع خرید دلاری', value: summary?.volumeBuyUsdt },
         { label: 'جمع فروش دلاری', value: summary?.volumeSellUsdt },
         { label: 'جمع خرید تومانی', value: summary?.volumeBuyIRT },
@@ -44,8 +38,8 @@ const Demo1LightSidebarPage = () => {
     {
       title: 'میانگین قیمت‌ها',
       items: [
-        { label: 'میانگین قیمت خرید پرفکت مانی', value: summary?.averagePriceBuyPm },
-        { label: 'میانگین قیمت فروش پرفکت مانی', value: summary?.averagePriceSellPm },
+        { label: 'میانگین سود خرید  تتر', value: summary?.averagePriceBuyPm },
+        { label: 'میانگین سود فروش  تتر', value: summary?.averagePriceSellPm },
         { label: 'میانگین قیمت خرید تتر', value: summary?.averagePriceBuyTether },
         { label: 'میانگین قیمت فروش تتر', value: summary?.averagePriceSellTether },
       ]
@@ -111,11 +105,7 @@ const Demo1LightSidebarPage = () => {
             ))}
           </div>
 
-          {/* Customer Summary Table */}
-          <div className="flex flex-col gap-5 lg:gap-7.5">
-            <h3 className="text-lg text-gray-800 font-semibold">جدول خلاصه مشتریان</h3>
-            <CustomerSummaryTable />
-          </div>
+          
         </div>
       </Container>
     </Fragment>
