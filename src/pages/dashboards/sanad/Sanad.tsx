@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Invoice, InvoiceAddRequestBody, Enum, Customer } from '@/types/invoice';
 import { getInvoices, createInvoice, updateInvoice, deleteInvoice, getInvoiceTypes, getInvoiceSymbols } from '@/services/invoiceService';
 import { getCustomers } from '@/services/customerService';
-import { digitSeparator } from '@/utils';
+import { digitSeparator, toAbsoluteUrl } from '@/utils';
 import { TDataGridRequestParams } from '@/components/data-grid';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -78,8 +78,8 @@ const SanadPage = () => {
         setCustomers(customersData.data);
         setFilteredTypes(transformedTypes);
         setFilteredSymbols(filteredSymbolsData);
-       
-        
+
+
       } catch (error) {
         toast.error('خطا در دریافت اطلاعات اولیه');
       }
@@ -154,7 +154,7 @@ const SanadPage = () => {
         txId: invoiceInfo.txId,
         customerId: selectedCustomer,
       });
-      
+
       if (success) {
         toast.success('سند با موفقیت اضافه شد');
         setIsCreateModalOpen(false);
@@ -169,13 +169,13 @@ const SanadPage = () => {
   };
 
   const handleEditInvoiceSubmit = async () => {
-    
-    
+
+
     if (!selectedInvoice || !selectedCustomer || !selectedType || !selectedSymbol) {
       toast.error('لطفاً تمام فیلدهای اجباری را پر کنید');
       return;
     }
-    
+
     try {
       const success = await updateInvoice({
         id: selectedInvoice.id,
@@ -187,7 +187,7 @@ const SanadPage = () => {
         txId: invoiceInfo.txId,
         customerId: selectedCustomer,
       });
-      
+
       if (success) {
         toast.success('سند با موفقیت ویرایش شد');
         setIsEditModalOpen(false);
@@ -205,7 +205,7 @@ const SanadPage = () => {
 
   const confirmDeleteInvoice = async () => {
     if (!selectedInvoice) return;
-    
+
     try {
       const success = await deleteInvoice(selectedInvoice.id);
       if (success) {
@@ -224,20 +224,20 @@ const SanadPage = () => {
   // Load invoice data when edit modal opens
   useEffect(() => {
     if (isEditModalOpen && selectedInvoice && customers.length > 0) {
-      
+
       // Try to find customer by name or phone number if customerId is not available
       let matchedCustomer = null;
       if (selectedInvoice.customerId) {
         matchedCustomer = customers.find(customer => customer.id === selectedInvoice.customerId);
       } else {
         // Try to find by name and phone
-        matchedCustomer = customers.find(customer => 
+        matchedCustomer = customers.find(customer =>
           customer.firstName + ' ' + customer.lastName === selectedInvoice.name ||
           customer.phoneNumber === selectedInvoice.phoneNumber
         );
       }
-      
-      
+
+
       setInvoiceInfo({
         amount: selectedInvoice.amount,
         rate: selectedInvoice.rate,
@@ -247,20 +247,20 @@ const SanadPage = () => {
         txId: selectedInvoice.txId,
         customerId: matchedCustomer?.id || 0,
       });
-      
+
       // Set display values
       setAmountDisplay(selectedInvoice.amount > 0 ? digitSeparator(selectedInvoice.amount) : '');
       setRateDisplay(selectedInvoice.rate > 0 ? digitSeparator(selectedInvoice.rate) : '');
-      
 
-      
+
+
       // Use setTimeout to ensure state updates properly
       setTimeout(() => {
         setSelectedCustomer(matchedCustomer?.id || null);
         setSelectedType(selectedInvoice.type.id);
         setSelectedSymbol(selectedInvoice.symbol.id);
       }, 100);
-      
+
     } else if (isEditModalOpen) {
       console.log('Edit modal opened but missing data:', {
         selectedInvoice: !!selectedInvoice,
@@ -345,7 +345,13 @@ const SanadPage = () => {
         enableSorting: true,
         cell: ({ row }) => {
           return (
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-sm font-medium text-gray-900 flex items-center gap-1">
+              {row.original.symbol.title === "تتر" && <div className="flex items-center justify-center clearfix bshadow0 pbs">
+                <span className="ki-outline ki-dollar"><span className="path1"></span><span className="path2"></span></span>
+
+              </div>}
+              {row.original.symbol.title === "تومان" && <img src={toAbsoluteUrl('/media/images/toman.jpg')} className="w-4 h-4" alt="تومان" />}
+              {row.original.symbol.title === "پرفکت مانی" && "💳 "}
               {row.original.symbol.title}
             </span>
           );
@@ -426,7 +432,7 @@ const SanadPage = () => {
         enableSorting: false,
         cell: ({ row }) => {
           const invoice = row.original;
-          
+
           return (
             <div className="flex items-center gap-2">
               <button
@@ -436,7 +442,7 @@ const SanadPage = () => {
               >
                 <KeenIcon icon="notepad-edit" className="text-gray-500" />
               </button>
-              
+
               {/* <button
                 onClick={() => handleDeleteInvoice(invoice)}
                 className="btn btn-icon btn-xs btn-clear btn-light"
@@ -468,7 +474,7 @@ const SanadPage = () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
-      
+
       searchTimeoutRef.current = setTimeout(() => {
         reload(); // Use DataGrid's native reload
       }, 300);
@@ -509,7 +515,7 @@ const SanadPage = () => {
 
           {/* Type Filter */}
           <div className="flex">
-            <Select value={typeFilter.toString()} onValueChange={(value) => setTypeFilter(Number(value))}  dir="rtl">
+            <Select value={typeFilter.toString()} onValueChange={(value) => setTypeFilter(Number(value))} dir="rtl">
               <SelectTrigger className="w-40" size="sm">
                 <SelectValue placeholder="همه انواع" />
               </SelectTrigger>
@@ -546,7 +552,7 @@ const SanadPage = () => {
             جستجو
           </button>
 
-          <button 
+          <button
             className="btn btn-sm btn-success"
             onClick={() => setIsCreateModalOpen(true)}
           >
@@ -589,21 +595,21 @@ const SanadPage = () => {
           </ModalHeader>
           <ModalBody className="space-y-4">
             {/* Customer Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">مشتری</label>
-              <select
-                value={selectedCustomer || ''}
-                onChange={(e) => setSelectedCustomer(e.target.value ? Number(e.target.value) : null)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <option value="">انتخاب مشتری</option>
-                {customers.map((customer) => (
-                  <option key={customer.id} value={customer.id}>
-                    {customer.firstName} {customer.lastName} 
-                  </option>
-                ))}
-              </select>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">مشتری</label>
+                <select
+                  value={selectedCustomer || ''}
+                  onChange={(e) => setSelectedCustomer(e.target.value ? Number(e.target.value) : null)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">انتخاب مشتری</option>
+                  {customers.map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.firstName} {customer.lastName}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
             <div className="grid grid-cols-2 gap-4">
               {/* Type Selection */}
@@ -634,6 +640,10 @@ const SanadPage = () => {
                   <option value="">انتخاب ارز</option>
                   {filteredSymbols.map((symbol) => (
                     <option key={symbol.id} value={symbol.id}>
+                      {symbol.title == "تتر" && <div className="flex items-center justify-center clearfix bshadow0 pbs">
+                        <span className="ki-outline ki-dollar"><span className="path1"></span><span className="path2"></span></span>
+                      </div>}
+                      {symbol.title == "تومان" && <img src={toAbsoluteUrl('/media/images/toman.jpg')} className="w-4 h-4" alt="تومان" />}
                       {symbol.title}
                     </option>
                   ))}
@@ -654,7 +664,7 @@ const SanadPage = () => {
                       setAmountDisplay(value);
                       const numericValue = removeCommaFromNumber(value);
                       if (!isNaN(numericValue)) {
-                        setInvoiceInfo({...invoiceInfo, amount: numericValue});
+                        setInvoiceInfo({ ...invoiceInfo, amount: numericValue });
                       }
                     }
                   }}
@@ -681,7 +691,7 @@ const SanadPage = () => {
                         setRateDisplay(value);
                         const numericValue = removeCommaFromNumber(value);
                         if (!isNaN(numericValue)) {
-                          setInvoiceInfo({...invoiceInfo, rate: numericValue});
+                          setInvoiceInfo({ ...invoiceInfo, rate: numericValue });
                         }
                       }
                     }}
@@ -703,17 +713,17 @@ const SanadPage = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">هش تراکنش</label>
                 <Input
                   value={invoiceInfo.txId}
-                  onChange={(e) => setInvoiceInfo({...invoiceInfo, txId: e.target.value})}
+                  onChange={(e) => setInvoiceInfo({ ...invoiceInfo, txId: e.target.value })}
                   placeholder="هش تراکنش را وارد کنید"
                 />
               </div>
             )}
-             {selectedSymbol === 3 && (
+            {selectedSymbol === 3 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">کد پیگیری</label>
                 <Input
                   value={invoiceInfo.txId}
-                  onChange={(e) => setInvoiceInfo({...invoiceInfo, txId: e.target.value})}
+                  onChange={(e) => setInvoiceInfo({ ...invoiceInfo, txId: e.target.value })}
                   placeholder=" کد پیگیری را وارد کنید"
                 />
               </div>
@@ -725,7 +735,7 @@ const SanadPage = () => {
               <textarea
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={invoiceInfo.description}
-                onChange={(e) => setInvoiceInfo({...invoiceInfo, description: e.target.value})}
+                onChange={(e) => setInvoiceInfo({ ...invoiceInfo, description: e.target.value })}
                 placeholder="توضیحات اختیاری..."
               />
             </div>
@@ -752,8 +762,8 @@ const SanadPage = () => {
             <ModalTitle>ویرایش سند</ModalTitle>
           </ModalHeader>
           <ModalBody className="space-y-4">
-           
-             
+
+
             {/* Customer Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">مشتری</label>
@@ -766,7 +776,7 @@ const SanadPage = () => {
                 <option value="">انتخاب مشتری</option>
                 {customers.map((customer) => (
                   <option key={customer.id} value={customer.id}>
-                    {customer.firstName} {customer.lastName} 
+                    {customer.firstName} {customer.lastName}
                   </option>
                 ))}
               </select>
@@ -801,6 +811,10 @@ const SanadPage = () => {
                   <option value="">انتخاب ارز</option>
                   {filteredSymbols.map((symbol) => (
                     <option key={symbol.id} value={symbol.id}>
+                      {symbol.title === "تتر" && <div className="flex items-center justify-center clearfix bshadow0 pbs">
+                        <span className="ki-outline ki-dollar"><span className="path1"></span><span className="path2"></span></span>
+                      </div>}
+                      {symbol.title === "تومان" && <img src={toAbsoluteUrl('/media/images/toman.jpg')} className="w-4 h-4" alt="تومان" />}
                       {symbol.title}
                     </option>
                   ))}
@@ -821,7 +835,7 @@ const SanadPage = () => {
                       setAmountDisplay(value);
                       const numericValue = removeCommaFromNumber(value);
                       if (!isNaN(numericValue)) {
-                        setInvoiceInfo({...invoiceInfo, amount: numericValue});
+                        setInvoiceInfo({ ...invoiceInfo, amount: numericValue });
                       }
                     }
                   }}
@@ -840,7 +854,7 @@ const SanadPage = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">نرخ</label>
                 <Input
                   value={digitSeparator(invoiceInfo.rate)}
-                  onChange={(e) => setInvoiceInfo({...invoiceInfo, rate: removeCommaFromNumber(e.target.value)})}
+                  onChange={(e) => setInvoiceInfo({ ...invoiceInfo, rate: removeCommaFromNumber(e.target.value) })}
                   placeholder="نرخ را وارد کنید"
                 />
               </div>
@@ -851,7 +865,7 @@ const SanadPage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">هش تراکنش</label>
               <Input
                 value={invoiceInfo.txId}
-                onChange={(e) => setInvoiceInfo({...invoiceInfo, txId: e.target.value})}
+                onChange={(e) => setInvoiceInfo({ ...invoiceInfo, txId: e.target.value })}
                 placeholder="هش تراکنش را وارد کنید"
               />
             </div>
@@ -862,7 +876,7 @@ const SanadPage = () => {
               <textarea
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={invoiceInfo.description}
-                onChange={(e) => setInvoiceInfo({...invoiceInfo, description: e.target.value})}
+                onChange={(e) => setInvoiceInfo({ ...invoiceInfo, description: e.target.value })}
                 placeholder="توضیحات اختیاری..."
               />
             </div>
@@ -906,11 +920,11 @@ const SanadPage = () => {
                   )}
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-600">
                 این عمل قابل بازگشت نیست و تمام اطلاعات سند حذف خواهد شد.
               </p>
-              
+
               <div className="flex justify-end gap-3 pt-4">
                 <Button variant="outline" onClick={() => {
                   setIsDeleteModalOpen(false);
@@ -918,8 +932,8 @@ const SanadPage = () => {
                 }}>
                   لغو
                 </Button>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   onClick={confirmDeleteInvoice}
                   className="bg-red-600 hover:bg-red-700 text-white"
                 >
