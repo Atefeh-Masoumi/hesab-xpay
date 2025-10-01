@@ -4,6 +4,10 @@ import { Toolbar, ToolbarHeading } from '@/layouts/demo1/toolbar';
 import { ColumnDef } from '@tanstack/react-table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import DatePicker from 'react-multi-date-picker';
+import persian from 'react-date-object/calendars/persian';
+import persian_fa from 'react-date-object/locales/persian_fa';
 import { Invoice, InvoiceAddRequestBody, Enum, Customer } from '@/types/invoice';
 import { getInvoices, createInvoice, updateInvoice, deleteInvoice, getInvoiceTypes, getInvoiceSymbols } from '@/services/invoiceService';
 import { getCustomers } from '@/services/customerService';
@@ -13,6 +17,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalBody } from '@/components/modal';
 import { CurrencySelect } from './currentSelct';
+import CreateInvoiceModal from './CreateInvoiceModal';
+import EditInvoiceMdal from './EditInvoiceMdal';
 
 const SanadPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,6 +55,54 @@ const SanadPage = () => {
   const [selectedSymbol, setSelectedSymbol] = useState<number | null>(null);
   const [filteredTypes, setFilteredTypes] = useState<Enum[]>([]);
   const [filteredSymbols, setFilteredSymbols] = useState<Enum[]>([]);
+
+  // Date filter state
+  const [datePreset, setDatePreset] = useState<'today' | 'yesterday' | 'last7' | 'last30' | 'last365' | 'custom'>('today');
+  const [dateRange, setDateRange] = useState<{ from: Date | null; to: Date | null}>({ from: new Date(), to: new Date() });
+
+  const formatPersianDate = useCallback((d?: Date | null) => {
+    if (!d) return '';
+    try {
+      return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    } catch {
+      return d.toLocaleDateString('fa-IR');
+    }
+  }, []);
+
+  const toISODate = (d: Date) => {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const computeDateRange = useCallback(() => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (datePreset === 'today') return { from: startOfToday, to: endOfToday };
+    if (datePreset === 'yesterday') {
+      const y = new Date(startOfToday);
+      y.setDate(y.getDate() - 1);
+      return { from: y, to: y };
+    }
+    if (datePreset === 'last7') {
+      const from = new Date(startOfToday);
+      from.setDate(from.getDate() - 6);
+      return { from, to: endOfToday };
+    }
+    if (datePreset === 'last30') {
+      const from = new Date(startOfToday);
+      from.setDate(from.getDate() - 29);
+      return { from, to: endOfToday };
+    }
+    if (datePreset === 'last365') {
+      const from = new Date(startOfToday);
+      from.setDate(from.getDate() - 364);
+      return { from, to: endOfToday };
+    }
+    return { from: dateRange.from ?? startOfToday, to: dateRange.to ?? endOfToday };
+  }, [datePreset, dateRange]);
 
   // Helper function to replace کاربر with مشتری in type titles
   const transformTypeTitle = (title: string): string => {
@@ -272,11 +326,16 @@ const SanadPage = () => {
 
   const fetchInvoices = async (params: TDataGridRequestParams) => {
     try {
+      const range = computeDateRange();
+      const fromDate = range.from ? toISODate(range.from) : undefined;
+      const toDate = range.to ? toISODate(range.to) : undefined;
       return await getInvoices({
         ...params,
         keyword: searchQuery,
         type: typeFilter !== -1 ? typeFilter : undefined,
         symbol: symbolFilter !== -1 ? symbolFilter : undefined,
+        fromDate,
+        toDate,
       });
     } catch (error) {
       toast.error('خطا در دریافت اطلاعات سندها');
@@ -550,6 +609,52 @@ const SanadPage = () => {
             </Select>
           </div>
 
+          {/* Date Filter */}
+          <div className="flex items-center gap-2" >
+            <Select value={datePreset} onValueChange={(v) => { setDatePreset(v as any); if (v !== 'custom') reload(); }} dir="rtl">
+              <SelectTrigger className="w-36" size="sm">
+                <SelectValue placeholder="فیلتر تاریخ" />
+              </SelectTrigger>
+              <SelectContent className="w-44">
+                <SelectItem value="today">امروز</SelectItem>
+                <SelectItem value="yesterday">دیروز</SelectItem>
+                <SelectItem value="last7">هفته گذشته</SelectItem>
+                <SelectItem value="last30">ماه گذشته</SelectItem>
+                <SelectItem value="last365">سال گذشته</SelectItem>
+                <SelectItem value="custom">کاستوم</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="btn btn-sm btn-light" disabled={datePreset !== 'custom'}>
+                  {(() => { const r = computeDateRange(); return r.from && r.to ? `${formatPersianDate(r.from)} - ${formatPersianDate(r.to)}` : 'انتخاب بازه'; })()}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="p-0 z-[9999] bg-white w-full" align="start">
+                <div className="p-3 z-[9999] bg-white w-full">
+                  <DatePicker
+                    value={[dateRange.from, dateRange.to].filter(Boolean) as any}
+                    onChange={(values: any) => {
+                      const [from, to] = Array.isArray(values) ? values : [values];
+                      const toDateObj = (v: any) => (v && v.toDate ? v.toDate() : v ? new Date(v) : null);
+                      setDateRange({ from: toDateObj(from), to: toDateObj(to) });
+                    }}
+                    numberOfMonths={2}
+                    calendar={persian}
+                    locale={persian_fa}
+                    calendarPosition="bottom-center"
+                    className="range custom-jalali w-full bg-white z-[9999]"
+                  />
+                </div>
+                <div className="flex justify-end gap-2 p-3 pt-0">
+                  <button className="btn btn-xs btn-light" onClick={() => setDateRange({ from: new Date(), to: new Date() })}>امروز</button>
+                  <button className="btn btn-xs btn-primary" onClick={() => reload()}>اعمال</button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
           <button className="btn btn-sm btn-primary" onClick={handleSearch}>
             <KeenIcon icon="magnifier" />
             جستجو
@@ -591,356 +696,54 @@ const SanadPage = () => {
       </Container>
 
       {/* Create Invoice Modal */}
-      <Modal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>
-        <ModalContent className="max-w-4xl">
-          <ModalHeader>
-            <ModalTitle>افزودن سند جدید</ModalTitle>
-          </ModalHeader>
-          <ModalBody className="space-y-4">
-            {/* Customer Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">مشتری</label>
-              <Select
-                value={selectedCustomer ? String(selectedCustomer) : ""}
-                onValueChange={(val) => setSelectedCustomer(val ? Number(val) : null)}
-                dir="rtl"
-              >
-                 <SelectTrigger className="w-full h-10">
-                    <SelectValue placeholder="انتخاب مشتری" />
-                  </SelectTrigger>
-                  <SelectContent className="z-[9999]">
-                {customers.map((customer) => (
-                  <SelectItem key={customer.id} value={String(customer.id)}>
-                    {customer.firstName} {customer.lastName}
-                  </SelectItem>
-                ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4" dir="rtl">
-              {/* Type Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  نوع تراکنش
-                </label>
-
-                <Select
-                  value={selectedType ? String(selectedType) : ""}
-                  onValueChange={(val) => setSelectedType(val ? Number(val) : null)}
-                  dir="rtl"
-                >
-                  <SelectTrigger className="w-full h-10">
-                    <SelectValue placeholder="انتخاب نوع" />
-                  </SelectTrigger>
-
-                  <SelectContent className="z-[9999]">
-                    {filteredTypes.map((type) => (
-                      <SelectItem key={type.id} value={String(type.id)}>
-                        {type.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Symbol Selection */}
-              <div>
-                <CurrencySelect
-                  selectedSymbol={selectedSymbol}
-                  setSelectedSymbol={setSelectedSymbol}
-                  filteredSymbols={filteredSymbols}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* Amount */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">مقدار</label>
-                <Input
-                  value={amountDisplay}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    // Only allow numbers and commas
-                    if (/^[0-9,]*$/.test(value)) {
-                      setAmountDisplay(value);
-                      const numericValue = removeCommaFromNumber(value);
-                      if (!isNaN(numericValue)) {
-                        setInvoiceInfo({ ...invoiceInfo, amount: numericValue });
-                      }
-                    }
-                  }}
-                  onBlur={() => {
-                    // Format on blur
-                    if (invoiceInfo.amount > 0) {
-                      setAmountDisplay(digitSeparator(invoiceInfo.amount));
-                    }
-                  }}
-                  placeholder="مقدار را وارد کنید"
-                />
-              </div>
-
-              {/* Rate - only show if not symbol 3 (IRT) */}
-              {selectedSymbol !== 3 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">نرخ</label>
-                  <Input
-                    value={rateDisplay}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      // Only allow numbers and commas
-                      if (/^[0-9,]*$/.test(value)) {
-                        setRateDisplay(value);
-                        const numericValue = removeCommaFromNumber(value);
-                        if (!isNaN(numericValue)) {
-                          setInvoiceInfo({ ...invoiceInfo, rate: numericValue });
-                        }
-                      }
-                    }}
-                    onBlur={() => {
-                      // Format on blur
-                      if (invoiceInfo.rate > 0) {
-                        setRateDisplay(digitSeparator(invoiceInfo.rate));
-                      }
-                    }}
-                    placeholder="نرخ را وارد کنید"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Transaction Hash - only show for symbol 1 (USDT) */}
-            {selectedSymbol === 1 && selectedType !== 1 && selectedType !== 2 && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">هش تراکنش</label>
-                <Input
-                  value={invoiceInfo.txId}
-                  onChange={(e) => setInvoiceInfo({ ...invoiceInfo, txId: e.target.value })}
-                  placeholder="هش تراکنش را وارد کنید"
-                />
-              </div>
-            )}
-            {selectedSymbol === 3 && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">کد پیگیری</label>
-                <Input
-                  value={invoiceInfo.txId}
-                  onChange={(e) => setInvoiceInfo({ ...invoiceInfo, txId: e.target.value })}
-                  placeholder=" کد پیگیری را وارد کنید"
-                />
-              </div>
-            )}
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">توضیحات</label>
-              <textarea
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={invoiceInfo.description}
-                onChange={(e) => setInvoiceInfo({ ...invoiceInfo, description: e.target.value })}
-                placeholder="توضیحات اختیاری..."
-              />
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" onClick={() => {
-                setIsCreateModalOpen(false);
-                resetInvoiceInfo();
-              }}>
-                لغو
-              </Button>
-              <Button onClick={handleCreateInvoice}>
-                افزودن
-              </Button>
-            </div>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+     <CreateInvoiceModal 
+     isCreateModalOpen={isCreateModalOpen}
+     setIsCreateModalOpen={setIsCreateModalOpen}
+     customers={customers}
+     symbols={symbols}
+     selectedCustomer={selectedCustomer}
+     setSelectedCustomer={setSelectedCustomer}
+     selectedType={selectedType}
+     setSelectedType={setSelectedType}
+     selectedSymbol={selectedSymbol}
+     setSelectedSymbol={setSelectedSymbol}
+     filteredTypes={filteredTypes}
+     filteredSymbols={filteredSymbols}
+     invoiceInfo={invoiceInfo}
+     setInvoiceInfo={setInvoiceInfo}
+     amountDisplay={amountDisplay}
+     setAmountDisplay={setAmountDisplay}
+     rateDisplay={rateDisplay}
+     setRateDisplay={setRateDisplay}
+     resetInvoiceInfo={resetInvoiceInfo}
+     handleCreateInvoice={handleCreateInvoice}
+     />
 
       {/* Edit Invoice Modal */}
-      <Modal open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
-        <ModalContent className="max-w-4xl">
-          <ModalHeader>
-            <ModalTitle>ویرایش سند</ModalTitle>
-          </ModalHeader>
-          <ModalBody className="space-y-4">
-
-
-            {/* Customer Selection */}
-            <div>
-              <label className="font-[Dana] block text-sm font-medium text-gray-700 mb-1">مشتری</label>
-              <select
-                value={selectedCustomer || ''}
-                onChange={(e) => setSelectedCustomer(e.target.value ? Number(e.target.value) : null)}
-                disabled={true}
-                className="font-[Dana] flex h-10 w-full rounded-md border border-input bg-gray-100 px-3 py-2 text-sm ring-offset-background cursor-not-allowed opacity-60"
-              >
-                <option value="">انتخاب مشتری</option>
-                {customers.map((customer) => (
-                  <option key={customer.id} value={customer.id}>
-                    {customer.firstName} {customer.lastName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* Type Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">نوع تراکنش</label>
-                <Select
-                  value={selectedType ? String(selectedType) : ""}
-                  onValueChange={(val) => setSelectedType(val ? Number(val) : null)}
-                  dir="rtl"
-                  >
-                   <SelectTrigger className="w-full h-10">
-                    <SelectValue placeholder="انتخاب نوع" />
-                  </SelectTrigger>
-                  <SelectContent className="z-[9999]">
-                  {filteredTypes.map((type) => (
-                    <SelectItem key={type.id} value={String(type.id)}>
-                      {type.title}
-                    </SelectItem>
-                  ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Symbol Selection */}
-              <div>
-                  
-                <CurrencySelect
-                  selectedSymbol={selectedSymbol}
-                  setSelectedSymbol={setSelectedSymbol}
-                  filteredSymbols={filteredSymbols}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* Amount */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">مقدار</label>
-                <Input
-                  value={amountDisplay}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    // Only allow numbers and commas
-                    if (/^[0-9,]*$/.test(value)) {
-                      setAmountDisplay(value);
-                      const numericValue = removeCommaFromNumber(value);
-                      if (!isNaN(numericValue)) {
-                        setInvoiceInfo({ ...invoiceInfo, amount: numericValue });
-                      }
-                    }
-                  }}
-                  onBlur={() => {
-                    // Format on blur
-                    if (invoiceInfo.amount > 0) {
-                      setAmountDisplay(digitSeparator(invoiceInfo.amount));
-                    }
-                  }}
-                  placeholder="مقدار را وارد کنید"
-                />
-              </div>
-
-              {/* Rate */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">نرخ</label>
-                <Input
-                  value={digitSeparator(invoiceInfo.rate)}
-                  onChange={(e) => setInvoiceInfo({ ...invoiceInfo, rate: removeCommaFromNumber(e.target.value) })}
-                  placeholder="نرخ را وارد کنید"
-                />
-              </div>
-            </div>
-
-            {/* Transaction Hash */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">هش تراکنش</label>
-              <Input
-                value={invoiceInfo.txId}
-                onChange={(e) => setInvoiceInfo({ ...invoiceInfo, txId: e.target.value })}
-                placeholder="هش تراکنش را وارد کنید"
-              />
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">توضیحات</label>
-              <textarea
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={invoiceInfo.description}
-                onChange={(e) => setInvoiceInfo({ ...invoiceInfo, description: e.target.value })}
-                placeholder="توضیحات اختیاری..."
-              />
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" onClick={() => {
-                setIsEditModalOpen(false);
-                setSelectedInvoice(null);
-                resetInvoiceInfo();
-              }}>
-                لغو
-              </Button>
-              <Button onClick={handleEditInvoiceSubmit}>
-                ذخیره تغییرات
-              </Button>
-            </div>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+      <EditInvoiceMdal 
+      isEditModalOpen={isEditModalOpen}
+      setIsEditModalOpen={setIsEditModalOpen}
+      selectedInvoice={selectedInvoice}
+      setSelectedInvoice={setSelectedInvoice}
+      invoiceInfo={invoiceInfo}
+      setInvoiceInfo={setInvoiceInfo}
+      amountDisplay={amountDisplay}
+      setAmountDisplay={setAmountDisplay}
+      filteredTypes={filteredTypes}
+      customers={customers}
+      selectedCustomer={selectedCustomer}
+      setSelectedCustomer={setSelectedCustomer}
+      selectedType={selectedType}
+      setSelectedType={setSelectedType}
+      selectedSymbol={selectedSymbol}
+      setSelectedSymbol={setSelectedSymbol}
+      filteredSymbols={filteredSymbols}
+      resetInvoiceInfo={resetInvoiceInfo}
+      handleEditInvoiceSubmit={handleEditInvoiceSubmit}
+      />
 
       {/* Delete Confirmation Modal */}
-      <Modal open={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
-        <ModalContent className="max-w-md">
-          <ModalHeader>
-            <ModalTitle>تایید حذف</ModalTitle>
-          </ModalHeader>
-          <ModalBody>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <KeenIcon icon="trash" className="text-red-600 text-lg" />
-                </div>
-                <div>
-                  <p className="text-gray-900 font-medium">
-                    آیا از حذف این سند اطمینان دارید؟
-                  </p>
-                  {selectedInvoice && (
-                    <p className="text-gray-600 text-sm mt-1">
-                      سند شماره: {selectedInvoice.id}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <p className="text-sm text-gray-600">
-                این عمل قابل بازگشت نیست و تمام اطلاعات سند حذف خواهد شد.
-              </p>
-
-              <div className="flex justify-end gap-3 pt-4">
-                <Button variant="outline" onClick={() => {
-                  setIsDeleteModalOpen(false);
-                  setSelectedInvoice(null);
-                }}>
-                  لغو
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={confirmDeleteInvoice}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  <KeenIcon icon="trash" className="mr-1" />
-                  حذف سند
-                </Button>
-              </div>
-            </div>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+     
     </Fragment>
   );
 };
