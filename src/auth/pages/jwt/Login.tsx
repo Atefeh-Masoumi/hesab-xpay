@@ -195,7 +195,7 @@ const Login = () => {
               ))}
             </div>
           </div>
-        )}123456
+        )}
 
         <button
           type="submit"
