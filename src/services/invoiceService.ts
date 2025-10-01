@@ -113,6 +113,8 @@ export const getInvoices = async (params: TDataGridRequestParams & {
   keyword?: string; 
   type?: number; 
   symbol?: number; 
+  fromDate?: string; // ISO string
+  toDate?: string;   // ISO string
 }): Promise<{ data: Invoice[], totalCount: number }> => {
   try {
     const page = params.pageIndex + 1; // Convert to 1-based indexing
@@ -133,6 +135,13 @@ export const getInvoices = async (params: TDataGridRequestParams & {
       queryParams.push(`symbol=${params.symbol}`);
     }
     
+    if (params.fromDate) {
+      queryParams.push(`fromDate=${encodeURIComponent(params.fromDate)}`);
+    }
+    if (params.toDate) {
+      queryParams.push(`toDate=${encodeURIComponent(params.toDate)}`);
+    }
+
     if (queryParams.length > 0) {
       url += `?${queryParams.join('&')}`;
     }
