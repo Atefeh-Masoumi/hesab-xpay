@@ -54,7 +54,16 @@
     --chart-5: 349 86% 50%;
   }
 }
-
+select, option {
+  font-family: "Dana", "Inter", system-ui, sans-serif !important;
+  -webkit-appearance: none; /* مخصوص Safari */
+  -moz-appearance: none;    /* مخصوص Firefox */
+  appearance: none;
+  background: transparent;
+}
+body, button, input, select, textarea {
+  font-family: "Dana", "Inter", system-ui, sans-serif !important;
+}
 @layer base {
   * {
     @apply border-border;
