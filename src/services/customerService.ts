@@ -4,15 +4,24 @@ import { TDataGridRequestParams } from '@/components/data-grid';
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
 
-export const getCustomers = async (params: TDataGridRequestParams & { keyword?: string }): Promise<{ data: Customer[], totalCount: number }> => {
+export const getCustomers = async (params: TDataGridRequestParams & { keyword?: string; fromDate?: string; toDate?: string }): Promise<{ data: Customer[], totalCount: number }> => {
   try {
     const page = params.pageIndex + 1; // Convert to 1-based indexing
     const pageSize = params.pageSize;
     
     let url = `${API_URL}/Customer/All/${page}/${pageSize}`;
-    
+    const queryParams: string[] = [];
     if (params.keyword && params.keyword.trim() !== '') {
-      url += `?keyword=${encodeURIComponent(params.keyword)}`;
+      queryParams.push(`keyword=${encodeURIComponent(params.keyword)}`);
+    }
+    if (params.fromDate) {
+      queryParams.push(`fromDate=${encodeURIComponent(params.fromDate)}`);
+    }
+    if (params.toDate) {
+      queryParams.push(`toDate=${encodeURIComponent(params.toDate)}`);
+    }
+    if (queryParams.length > 0) {
+      url += `?${queryParams.join('&')}`;
     }
 
     const response = await axios.get<CustomerApiResponse>(url);
