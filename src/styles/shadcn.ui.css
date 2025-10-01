@@ -64,6 +64,10 @@ select, option {
 body, button, input, select, textarea {
   font-family: "Dana", "Inter", system-ui, sans-serif !important;
 }
+.rmdp-calendar{
+  background-color: white !important;
+  z-index: 9999 !important;
+}
 @layer base {
   * {
     @apply border-border;
