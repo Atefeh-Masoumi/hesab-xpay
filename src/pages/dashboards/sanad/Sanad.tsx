@@ -2,24 +2,30 @@ import React, { useMemo, useState, useEffect, Fragment, useRef, useCallback } fr
 import { DataGrid, DataGridColumnHeader, KeenIcon, Container, useDataGrid } from '@/components';
 import { Toolbar, ToolbarHeading } from '@/layouts/demo1/toolbar';
 import { ColumnDef } from '@tanstack/react-table';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import DatePicker from 'react-multi-date-picker';
-import persian from 'react-date-object/calendars/persian';
-import persian_fa from 'react-date-object/locales/persian_fa';
+// import DatePicker from 'react-multi-date-picker';
+// import persian from 'react-date-object/calendars/persian';
+// import persian_fa from 'react-date-object/locales/persian_fa';
 import { Invoice, InvoiceAddRequestBody, Enum, Customer } from '@/types/invoice';
 import { getInvoices, createInvoice, updateInvoice, deleteInvoice, getInvoiceTypes, getInvoiceSymbols } from '@/services/invoiceService';
 import { getCustomers } from '@/services/customerService';
 import { digitSeparator, toAbsoluteUrl } from '@/utils';
 import { TDataGridRequestParams } from '@/components/data-grid';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Modal, ModalContent, ModalHeader, ModalTitle, ModalBody } from '@/components/modal';
-import { CurrencySelect } from './currentSelct';
 import CreateInvoiceModal from './CreateInvoiceModal';
 import EditInvoiceMdal from './EditInvoiceMdal';
+import '@hassanmojab/react-modern-calendar-datepicker/lib/DatePicker.css';
+import DatePicker, { Calendar, DayValue, utils } from '@hassanmojab/react-modern-calendar-datepicker';
+// Using Gregorian calculation to generate DayValue; no additional locale utils
 
+const toISODateFromModern = (d: any) => {
+  if (!d) return null
+  const yyyy = d.year
+  const mm = String(d.month).padStart(2, "0")
+  const dd = String(d.day).padStart(2, "0")
+  return `${yyyy}-${mm}-${dd}`
+}
 const SanadPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState(-1);
@@ -58,9 +64,58 @@ const SanadPage = () => {
 
   // Date filter state
   const [datePreset, setDatePreset] = useState<'today' | 'yesterday' | 'last7' | 'last30' | 'last365' | 'custom'>('today');
-  const [dateRange, setDateRange] = useState<{ from: Date | null; to: Date | null}>({ from: new Date(), to: new Date() });
+  // Uncontrolled Popover to avoid mount/unmount race conditions
 
-  const formatPersianDate = useCallback((d?: Date | null) => {
+  // Initialize with today's date in DayValue format (Persian calendar)
+  const utilsFa: any = utils('fa');
+  const getTodayDayValue = (): DayValue => utilsFa.getToday();
+
+  const [dateRange, setDateRange] = useState<{ from: DayValue ; to: DayValue }>(() => {
+    const today = getTodayDayValue();
+    return { from: today, to: today };
+  });
+
+  // Helper to move DayValue by N days in Persian calendar
+  const addDaysDV = (dv: DayValue, delta: number): DayValue => {
+    if (!dv) return getTodayDayValue();
+    let res: any = { year: (dv as any).year, month: (dv as any).month, day: (dv as any).day };
+    if (delta === 0) return res as DayValue;
+    if (delta < 0) {
+      for (let i = 0; i < -delta; i++) {
+        res.day -= 1;
+        if (res.day < 1) {
+          res.month -= 1;
+          if (res.month < 1) {
+            res.month = 12;
+            res.year -= 1;
+          }
+          res.day = utilsFa.getMonthLength({ year: res.year, month: res.month, day: 1 });
+        }
+      }
+    } else {
+      for (let i = 0; i < delta; i++) {
+        const monthLen = utilsFa.getMonthLength({ year: res.year, month: res.month, day: 1 });
+        res.day += 1;
+        if (res.day > monthLen) {
+          res.day = 1;
+          res.month += 1;
+          if (res.month > 12) {
+            res.month = 1;
+            res.year += 1;
+          }
+        }
+      }
+    }
+    return res as DayValue;
+  };
+
+  // Range selection handler: accept partial selection to allow second click to set 'to'
+  const handleCalendarChange = (value: { from: DayValue; to: DayValue }) => {
+    if (!value) return;
+    setDateRange(value);
+  };
+
+  const formatPersianDate = useCallback((d?: Date ) => {
     if (!d) return '';
     try {
       return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
@@ -69,40 +124,35 @@ const SanadPage = () => {
     }
   }, []);
 
-  const toISODate = (d: Date) => {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  };
+  // Update dateRange when preset changes
+  useEffect(() => {
+    if (datePreset === 'custom') return; // Don't override custom selection
 
-  const computeDateRange = useCallback(() => {
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    if (datePreset === 'today') return { from: startOfToday, to: endOfToday };
-    if (datePreset === 'yesterday') {
-      const y = new Date(startOfToday);
-      y.setDate(y.getDate() - 1);
-      return { from: y, to: y };
+    const today = getTodayDayValue();
+
+    if (datePreset === 'today') {
+      setDateRange({ from: today, to: today });
+    } else if (datePreset === 'yesterday') {
+      const yesterdayDV = addDaysDV(today, -1);
+      setDateRange({ from: yesterdayDV, to: yesterdayDV });
+    } else if (datePreset === 'last7') {
+      const weekAgoDV = addDaysDV(today, -6);
+      setDateRange({ from: weekAgoDV, to: today });
+    } else if (datePreset === 'last30') {
+      const monthAgoDV = addDaysDV(today, -29);
+      setDateRange({ from: monthAgoDV, to: today });
+    } else if (datePreset === 'last365') {
+      const yearAgoDV = addDaysDV(today, -364);
+      setDateRange({ from: yearAgoDV, to: today });
     }
-    if (datePreset === 'last7') {
-      const from = new Date(startOfToday);
-      from.setDate(from.getDate() - 6);
-      return { from, to: endOfToday };
+  }, [datePreset]);
+
+  // When entering custom mode, clear existing range to allow fresh selection
+  useEffect(() => {
+    if (datePreset === 'custom') {
+      setDateRange({ from: null, to: null });
     }
-    if (datePreset === 'last30') {
-      const from = new Date(startOfToday);
-      from.setDate(from.getDate() - 29);
-      return { from, to: endOfToday };
-    }
-    if (datePreset === 'last365') {
-      const from = new Date(startOfToday);
-      from.setDate(from.getDate() - 364);
-      return { from, to: endOfToday };
-    }
-    return { from: dateRange.from ?? startOfToday, to: dateRange.to ?? endOfToday };
-  }, [datePreset, dateRange]);
+  }, [datePreset]);
 
   // Helper function to replace کاربر with مشتری in type titles
   const transformTypeTitle = (title: string): string => {
@@ -326,16 +376,16 @@ const SanadPage = () => {
 
   const fetchInvoices = async (params: TDataGridRequestParams) => {
     try {
-      const range = computeDateRange();
-      const fromDate = range.from ? toISODate(range.from) : undefined;
-      const toDate = range.to ? toISODate(range.to) : undefined;
+
+      const fromDate = toISODateFromModern(dateRange.from)
+      const toDate = toISODateFromModern(dateRange.to)
       return await getInvoices({
         ...params,
         keyword: searchQuery,
         type: typeFilter !== -1 ? typeFilter : undefined,
         symbol: symbolFilter !== -1 ? symbolFilter : undefined,
-        fromDate,
-        toDate,
+        fromDate: fromDate ?? undefined,
+        toDate: toDate ?? undefined,
       });
     } catch (error) {
       toast.error('خطا در دریافت اطلاعات سندها');
@@ -626,33 +676,56 @@ const SanadPage = () => {
             </Select>
 
             <Popover>
-              <PopoverTrigger asChild>
-                <button className="btn btn-sm btn-light" disabled={datePreset !== 'custom'}>
-                  {(() => { const r = computeDateRange(); return r.from && r.to ? `${formatPersianDate(r.from)} - ${formatPersianDate(r.to)}` : 'انتخاب بازه'; })()}
+              {datePreset === 'custom' ? (
+                <Popover>
+                  <PopoverTrigger asChild>
+                  <button className="btn btn-sm btn-light">
+                    {dateRange?.from && dateRange?.to
+                      ? `${dateRange.from.year}/${String(dateRange.from.month).padStart(2,'0')}/${String(dateRange.from.day).padStart(2,'0')} - ${dateRange.to.year}/${String(dateRange.to.month).padStart(2,'0')}/${String(dateRange.to.day).padStart(2,'0')}`
+                      : 'انتخاب بازه'}
+                  </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0 z-[9999] bg-white w-full" align="start">
+                    <div className="p-3 z-[9999] bg-white w-full">
+                    <Calendar
+                        value={dateRange}
+                        onChange={handleCalendarChange}
+                        shouldHighlightWeekends
+                      locale="fa"
+                        
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2 p-3 pt-0">
+                      <button
+                        className="btn btn-xs btn-light"
+                        onClick={() => {
+                          const today = getTodayDayValue();
+                          setDateRange({ from: today, to: today });
+                        }}
+                      >
+                        امروز
+                      </button>
+                      <button
+                        className="btn btn-xs btn-primary"
+                        onClick={() => {
+                          reload();
+                         
+                        }}
+                      >
+                        اعمال
+                      </button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <button className="btn btn-sm btn-light" aria-disabled="true">
+                  {dateRange?.from && dateRange?.to
+                    ? `${dateRange.from.year}/${String(dateRange.from.month).padStart(2,'0')}/${String(dateRange.from.day).padStart(2,'0')} - ${dateRange.to.year}/${String(dateRange.to.month).padStart(2,'0')}/${String(dateRange.to.day).padStart(2,'0')}`
+                    : 'انتخاب بازه'}
                 </button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0 z-[9999] bg-white w-full" align="start">
-                <div className="p-3 z-[9999] bg-white w-full">
-                  <DatePicker
-                    value={[dateRange.from, dateRange.to].filter(Boolean) as any}
-                    onChange={(values: any) => {
-                      const [from, to] = Array.isArray(values) ? values : [values];
-                      const toDateObj = (v: any) => (v && v.toDate ? v.toDate() : v ? new Date(v) : null);
-                      setDateRange({ from: toDateObj(from), to: toDateObj(to) });
-                    }}
-                    numberOfMonths={2}
-                    calendar={persian}
-                    locale={persian_fa}
-                    calendarPosition="bottom-center"
-                    className="range custom-jalali w-full bg-white z-[9999]"
-                  />
-                </div>
-                <div className="flex justify-end gap-2 p-3 pt-0">
-                  <button className="btn btn-xs btn-light" onClick={() => setDateRange({ from: new Date(), to: new Date() })}>امروز</button>
-                  <button className="btn btn-xs btn-primary" onClick={() => reload()}>اعمال</button>
-                </div>
-              </PopoverContent>
+              )}
             </Popover>
+
           </div>
 
           <button className="btn btn-sm btn-primary" onClick={handleSearch}>
@@ -696,54 +769,54 @@ const SanadPage = () => {
       </Container>
 
       {/* Create Invoice Modal */}
-     <CreateInvoiceModal 
-     isCreateModalOpen={isCreateModalOpen}
-     setIsCreateModalOpen={setIsCreateModalOpen}
-     customers={customers}
-     symbols={symbols}
-     selectedCustomer={selectedCustomer}
-     setSelectedCustomer={setSelectedCustomer}
-     selectedType={selectedType}
-     setSelectedType={setSelectedType}
-     selectedSymbol={selectedSymbol}
-     setSelectedSymbol={setSelectedSymbol}
-     filteredTypes={filteredTypes}
-     filteredSymbols={filteredSymbols}
-     invoiceInfo={invoiceInfo}
-     setInvoiceInfo={setInvoiceInfo}
-     amountDisplay={amountDisplay}
-     setAmountDisplay={setAmountDisplay}
-     rateDisplay={rateDisplay}
-     setRateDisplay={setRateDisplay}
-     resetInvoiceInfo={resetInvoiceInfo}
-     handleCreateInvoice={handleCreateInvoice}
-     />
+      <CreateInvoiceModal
+        isCreateModalOpen={isCreateModalOpen}
+        setIsCreateModalOpen={setIsCreateModalOpen}
+        customers={customers}
+        symbols={symbols}
+        selectedCustomer={selectedCustomer}
+        setSelectedCustomer={setSelectedCustomer}
+        selectedType={selectedType}
+        setSelectedType={setSelectedType}
+        selectedSymbol={selectedSymbol}
+        setSelectedSymbol={setSelectedSymbol}
+        filteredTypes={filteredTypes}
+        filteredSymbols={filteredSymbols}
+        invoiceInfo={invoiceInfo}
+        setInvoiceInfo={setInvoiceInfo}
+        amountDisplay={amountDisplay}
+        setAmountDisplay={setAmountDisplay}
+        rateDisplay={rateDisplay}
+        setRateDisplay={setRateDisplay}
+        resetInvoiceInfo={resetInvoiceInfo}
+        handleCreateInvoice={handleCreateInvoice}
+      />
 
       {/* Edit Invoice Modal */}
-      <EditInvoiceMdal 
-      isEditModalOpen={isEditModalOpen}
-      setIsEditModalOpen={setIsEditModalOpen}
-      selectedInvoice={selectedInvoice}
-      setSelectedInvoice={setSelectedInvoice}
-      invoiceInfo={invoiceInfo}
-      setInvoiceInfo={setInvoiceInfo}
-      amountDisplay={amountDisplay}
-      setAmountDisplay={setAmountDisplay}
-      filteredTypes={filteredTypes}
-      customers={customers}
-      selectedCustomer={selectedCustomer}
-      setSelectedCustomer={setSelectedCustomer}
-      selectedType={selectedType}
-      setSelectedType={setSelectedType}
-      selectedSymbol={selectedSymbol}
-      setSelectedSymbol={setSelectedSymbol}
-      filteredSymbols={filteredSymbols}
-      resetInvoiceInfo={resetInvoiceInfo}
-      handleEditInvoiceSubmit={handleEditInvoiceSubmit}
+      <EditInvoiceMdal
+        isEditModalOpen={isEditModalOpen}
+        setIsEditModalOpen={setIsEditModalOpen}
+        selectedInvoice={selectedInvoice}
+        setSelectedInvoice={setSelectedInvoice}
+        invoiceInfo={invoiceInfo}
+        setInvoiceInfo={setInvoiceInfo}
+        amountDisplay={amountDisplay}
+        setAmountDisplay={setAmountDisplay}
+        filteredTypes={filteredTypes}
+        customers={customers}
+        selectedCustomer={selectedCustomer}
+        setSelectedCustomer={setSelectedCustomer}
+        selectedType={selectedType}
+        setSelectedType={setSelectedType}
+        selectedSymbol={selectedSymbol}
+        setSelectedSymbol={setSelectedSymbol}
+        filteredSymbols={filteredSymbols}
+        resetInvoiceInfo={resetInvoiceInfo}
+        handleEditInvoiceSubmit={handleEditInvoiceSubmit}
       />
 
       {/* Delete Confirmation Modal */}
-     
+
     </Fragment>
   );
 };
